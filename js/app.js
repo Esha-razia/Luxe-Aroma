@@ -36,9 +36,25 @@ document.addEventListener('DOMContentLoaded', () => {
     initScrollNavbar();
     initBackToTop();
     initGlobalEventListeners();
+    initFooterAccordion();
     updateCartIconCount();
     updateWishlistIconCount();
 });
+
+function initFooterAccordion() {
+    document.addEventListener('click', (e) => {
+        const title = e.target.closest('.footer-widget-title');
+        if (!title) return;
+        // Only accordion on mobile
+        if (window.innerWidth > 767) return;
+        const links = title.nextElementSibling;
+        if (links && links.classList.contains('footer-links')) {
+            const isOpen = links.classList.contains('footer-open');
+            links.classList.toggle('footer-open', !isOpen);
+            title.classList.toggle('footer-title-open', !isOpen);
+        }
+    });
+}
 
 // --- Preloader Controller ---
 function initPreloader() {
@@ -655,10 +671,13 @@ function renderShopPage(container) {
                                 </div>
                             </div>
 
-                            <!-- Collections -->
-                            <div class="filter-widget">
-                                <h3 class="filter-title">Collections</h3>
-                                <ul class="filter-list">
+                            <!-- Collections Accordion -->
+                            <div class="filter-widget filter-accordion">
+                                <h3 class="filter-title filter-accordion-title" id="filter-collection-title">
+                                    Collections
+                                    <span class="filter-accordion-icon"><i class="fas fa-plus"></i></span>
+                                </h3>
+                                <ul class="filter-list filter-accordion-body" id="filter-collection-body" style="display:none;">
                                     ${["French Collection", "Arabian Collection", "Floral Collection", "Men Collection", "Women Collection"].map(c => `
                                         <li>
                                             <label class="filter-checkbox-label">
@@ -670,10 +689,13 @@ function renderShopPage(container) {
                                 </ul>
                             </div>
 
-                            <!-- Gender -->
-                            <div class="filter-widget">
-                                <h3 class="filter-title">Gender</h3>
-                                <ul class="filter-list">
+                            <!-- Gender Accordion -->
+                            <div class="filter-widget filter-accordion">
+                                <h3 class="filter-title filter-accordion-title" id="filter-gender-title">
+                                    Gender
+                                    <span class="filter-accordion-icon"><i class="fas fa-plus"></i></span>
+                                </h3>
+                                <ul class="filter-list filter-accordion-body" id="filter-gender-body" style="display:none;">
                                     ${["men", "women", "unisex"].map(g => `
                                         <li>
                                             <label class="filter-checkbox-label text-capitalize">
@@ -685,17 +707,6 @@ function renderShopPage(container) {
                                 </ul>
                             </div>
 
-                            <!-- Price Range -->
-                            <div class="filter-widget">
-                                <h3 class="filter-title">Price Limit</h3>
-                                <input type="range" class="form-range" id="price-range" min="100" max="300" step="10" value="${state.shopFilters.maxPrice}">
-                                <div class="range-slider-value d-flex justify-content-between">
-                                    <span>$100</span>
-                                    <span id="price-val">$${state.shopFilters.maxPrice} max</span>
-                                </div>
-                            </div>
-                            
-                            <button class="btn btn-luxe-primary w-100" id="reset-filters-btn">Clear Filters</button>
                         </div>
                     </div>
 
@@ -725,6 +736,7 @@ function renderShopPage(container) {
 
     renderShopGrid();
     setupShopEventListeners();
+    initShopFilterAccordions();
 }
 
 function renderShopGrid() {
@@ -780,23 +792,11 @@ function renderShopGrid() {
 
 function setupShopEventListeners() {
     const searchInput = document.getElementById('shop-search');
-    const searchBtn = document.getElementById('shop-search-btn');
-    const priceSlider = document.getElementById('price-range');
-    const priceVal = document.getElementById('price-val');
     const sortSelect = document.getElementById('shop-sort');
-    const resetBtn = document.getElementById('reset-filters-btn');
 
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             state.shopFilters.search = e.target.value;
-            renderShopGrid();
-        });
-    }
-
-    if (priceSlider) {
-        priceSlider.addEventListener('input', (e) => {
-            state.shopFilters.maxPrice = parseInt(e.target.value);
-            priceVal.textContent = `$${state.shopFilters.maxPrice} max`;
             renderShopGrid();
         });
     }
@@ -808,7 +808,7 @@ function setupShopEventListeners() {
         });
     }
 
-    // Checkbox Listeners
+    // Collection Checkbox Listeners
     document.querySelectorAll('.collection-filter-checkbox').forEach(cb => {
         cb.addEventListener('change', () => {
             const val = cb.value;
@@ -821,6 +821,7 @@ function setupShopEventListeners() {
         });
     });
 
+    // Gender Checkbox Listeners
     document.querySelectorAll('.gender-filter-checkbox').forEach(cb => {
         cb.addEventListener('change', () => {
             const val = cb.value;
@@ -832,21 +833,24 @@ function setupShopEventListeners() {
             renderShopGrid();
         });
     });
+}
 
-    if (resetBtn) {
-        resetBtn.addEventListener('click', () => {
-            state.shopFilters = {
-                search: "",
-                collection: [],
-                gender: [],
-                minPrice: 50,
-                maxPrice: 300,
-                sort: "featured"
-            };
-            // Reload page view
-            renderShopPage(document.getElementById('app-content'));
+function initShopFilterAccordions() {
+    ['collection', 'gender'].forEach(key => {
+        const title = document.getElementById(`filter-${key}-title`);
+        const body  = document.getElementById(`filter-${key}-body`);
+        if (!title || !body) return;
+
+        title.style.cursor = 'pointer';
+        title.addEventListener('click', () => {
+            const isOpen = body.style.display !== 'none';
+            body.style.display = isOpen ? 'none' : 'block';
+            const icon = title.querySelector('i');
+            if (icon) {
+                icon.className = isOpen ? 'fas fa-plus' : 'fas fa-minus';
+            }
         });
-    }
+    });
 }
 
 // --- Product Details Renderer ---
@@ -978,9 +982,17 @@ function renderProductDetailPage(container, productId) {
                             `).join('')}
                         </div>
 
-                        <!-- Write a Review Form -->
-                        <div class="write-review-card mt-5">
-                            <h4 class="font-heading mb-4" style="font-size:1.2rem;"><i class="fas fa-pen-nib me-2"></i>Write a Review</h4>
+                        <!-- Write a Review Toggle Button -->
+                        <div class="text-center mt-5">
+                            <button class="btn btn-luxe-primary" id="toggle-prod-review-form-btn"><i class="fas fa-pen-nib me-2"></i>Write a Review</button>
+                        </div>
+
+                        <!-- Write a Review Form (hidden by default) -->
+                        <div class="write-review-card mt-4" id="prod-review-form-wrapper" style="display:none;">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h4 class="font-heading mb-0" style="font-size:1.2rem;"><i class="fas fa-pen-nib me-2"></i>Write a Review</h4>
+                                <button class="btn-close-review" id="close-prod-review-form-btn" title="Close"><i class="fas fa-times"></i></button>
+                            </div>
                             <form id="review-submit-form">
                                 <div class="row">
                                     <div class="col-md-6 form-group-luxe">
@@ -1129,9 +1141,34 @@ function renderProductDetailPage(container, productId) {
                 reviewsList.insertBefore(newCard, reviewsList.firstChild);
             }
 
+            // Hide form and show write review button again
+            const formWrapper = document.getElementById('prod-review-form-wrapper');
+            const toggleBtn = document.getElementById('toggle-prod-review-form-btn');
+            if (formWrapper) formWrapper.style.display = 'none';
+            if (toggleBtn) toggleBtn.style.display = 'inline-block';
+
             reviewForm.reset();
             selectReviewStar(5);
             showToast('Review Posted', 'Thank you! Your review has been added.');
+        });
+    }
+
+    // Toggle product review form visibility
+    const toggleBtn = document.getElementById('toggle-prod-review-form-btn');
+    const closeBtn = document.getElementById('close-prod-review-form-btn');
+    const formWrapper = document.getElementById('prod-review-form-wrapper');
+
+    if (toggleBtn && formWrapper) {
+        toggleBtn.addEventListener('click', () => {
+            formWrapper.style.display = 'block';
+            toggleBtn.style.display = 'none';
+            formWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    }
+    if (closeBtn && formWrapper && toggleBtn) {
+        closeBtn.addEventListener('click', () => {
+            formWrapper.style.display = 'none';
+            toggleBtn.style.display = 'inline-block';
         });
     }
 }

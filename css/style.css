@@ -182,7 +182,7 @@ a:hover {
     border-bottom: 1px solid var(--border-color);
     transition: var(--transition-smooth);
     padding: 20px 0;
-    z-index: 990;
+    z-index: 1030;
 }
 .navbar-luxe.navbar-shrink {
     padding: 12px 0;
@@ -1672,10 +1672,6 @@ a:hover {
     /* Review card full width */
     .review-slider-item { flex: 0 0 100%; min-width: 0; }
 
-    /* Newsletter form stack */
-    .newsletter-form { flex-direction: column; gap: 12px; }
-    .newsletter-input { width: 100%; border-radius: 0; }
-    .newsletter-btn { width: 100%; justify-content: center; }
 
     /* Footer columns */
     .footer-luxe .col-lg-4,
@@ -2062,4 +2058,83 @@ a:hover {
 .track-timeline-item.done .track-vinfo strong,
 .track-timeline-item.active .track-vinfo strong {
     color: var(--text-main);
+}
+
+/* ========================================
+   FILTER ACCORDION (Shop Sidebar)
+   ======================================== */
+.filter-accordion-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--transition-medium);
+}
+.filter-accordion-title:hover { color: var(--primary-blue); }
+.filter-accordion-icon {
+    font-size: 0.75rem;
+    color: var(--primary-blue);
+    flex-shrink: 0;
+}
+.filter-accordion-body { padding-top: 5px; }
+
+/* ========================================
+   REVIEW FORM CLOSE BUTTON
+   ======================================== */
+.btn-close-review {
+    background: transparent;
+    border: 1px solid var(--border-soft);
+    color: var(--text-body);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition-medium);
+    flex-shrink: 0;
+}
+.btn-close-review:hover {
+    background: var(--text-main);
+    color: var(--white);
+    border-color: var(--text-main);
+}
+
+/* ========================================
+   FOOTER MOBILE ACCORDION
+   ======================================== */
+@media (max-width: 767.98px) {
+    .footer-widget-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.12);
+        margin-bottom: 0 !important;
+    }
+    .footer-widget-title::after {
+        content: '+';
+        font-size: 1.1rem;
+        font-weight: 300;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+    .footer-widget-title.footer-title-open::after { content: '−'; }
+    .footer-links {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out;
+        margin-top: 0;
+    }
+    .footer-links.footer-open {
+        max-height: 300px;
+        margin-top: 14px;
+    }
+    /* Nav icons on mobile – slightly smaller to fit next to hamburger */
+    .nav-icons { gap: 8px; }
+    .nav-icon-btn { font-size: 0.9rem; padding: 4px; }
 }
