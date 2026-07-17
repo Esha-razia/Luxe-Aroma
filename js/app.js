@@ -366,12 +366,17 @@ function renderHomePage(container) {
 
         <!-- Featured Perfumes Section -->
         <section class="section-padding">
-            <div class="container">
+            <div class="container relative">
                 <div class="section-title-wrap text-center" data-aos="fade-up">
                     <span class="section-subtitle">Curated Luxury</span>
                     <h2 class="section-title">Featured Scents</h2>
                 </div>
-                <div class="row g-4" id="home-featured-grid"></div>
+                
+                <div class="luxe-carousel-wrap">
+                    <button class="carousel-control-btn carousel-control-prev" id="featured-prev"><i class="fas fa-chevron-left"></i></button>
+                    <div class="luxe-carousel-track" id="home-featured-grid"></div>
+                    <button class="carousel-control-btn carousel-control-next" id="featured-next"><i class="fas fa-chevron-right"></i></button>
+                </div>
             </div>
         </section>
 
@@ -388,9 +393,9 @@ function renderHomePage(container) {
                     <h2 class="section-title">Best Sellers</h2>
                 </div>
                 
-                <div class="best-sellers-carousel-wrap">
+                <div class="luxe-carousel-wrap">
                     <button class="carousel-control-btn carousel-control-prev" id="best-seller-prev"><i class="fas fa-chevron-left"></i></button>
-                    <div class="carousel-track" id="home-best-sellers-track"></div>
+                    <div class="luxe-carousel-track" id="home-best-sellers-track"></div>
                     <button class="carousel-control-btn carousel-control-next" id="best-seller-next"><i class="fas fa-chevron-right"></i></button>
                 </div>
             </div>
@@ -398,12 +403,17 @@ function renderHomePage(container) {
 
         <!-- New Arrivals Section -->
         <section class="section-padding">
-            <div class="container">
+            <div class="container relative">
                 <div class="section-title-wrap text-center" data-aos="fade-up">
                     <span class="section-subtitle">Fresh Creations</span>
                     <h2 class="section-title">New Arrivals</h2>
                 </div>
-                <div class="row g-4" id="home-new-arrivals-grid"></div>
+                
+                <div class="luxe-carousel-wrap">
+                    <button class="carousel-control-btn carousel-control-prev" id="new-arrival-prev"><i class="fas fa-chevron-left"></i></button>
+                    <div class="luxe-carousel-track" id="home-new-arrivals-grid"></div>
+                    <button class="carousel-control-btn carousel-control-next" id="new-arrival-next"><i class="fas fa-chevron-right"></i></button>
+                </div>
             </div>
         </section>
 
@@ -511,44 +521,32 @@ function renderFeaturedAndBestSellers() {
 
     // 1. Featured - Get 4 items
     const featuredProducts = window.LUXE_PRODUCTS.slice(0, 4);
-    featuredGrid.innerHTML = featuredProducts.map(p => createProductCardHTML(p, 'col-lg-3 col-md-6')).join('');
-
-    // 2. Best Sellers - Filter best sellers
-    const bestSellers = window.LUXE_PRODUCTS.filter(p => p.isBestSeller);
-    bestSellersTrack.innerHTML = bestSellers.map(p => `
-        <div class="carousel-item-luxe">
+    featuredGrid.innerHTML = featuredProducts.map(p => `
+        <div class="luxe-carousel-item">
             ${createProductCardHTML(p, '')}
         </div>
     `).join('');
 
-    // Setup Best Sellers Carousel Slider Controls
-    let scrollPos = 0;
-    const track = document.getElementById('home-best-sellers-track');
-    const nextBtn = document.getElementById('best-seller-next');
-    const prevBtn = document.getElementById('best-seller-prev');
-
-    if (track && nextBtn && prevBtn) {
-        const getCardWidth = () => track.querySelector('.carousel-item-luxe').offsetWidth + 30; // card width + gap
-        
-        nextBtn.addEventListener('click', () => {
-            const maxScroll = track.scrollWidth - track.clientWidth;
-            if (scrollPos < maxScroll) {
-                scrollPos = Math.min(scrollPos + getCardWidth(), maxScroll);
-                track.style.transform = `translateX(-${scrollPos}px)`;
-            }
-        });
-
-        prevBtn.addEventListener('click', () => {
-            if (scrollPos > 0) {
-                scrollPos = Math.max(scrollPos - getCardWidth(), 0);
-                track.style.transform = `translateX(-${scrollPos}px)`;
-            }
-        });
-    }
+    // 2. Best Sellers - Filter best sellers
+    const bestSellers = window.LUXE_PRODUCTS.filter(p => p.isBestSeller);
+    bestSellersTrack.innerHTML = bestSellers.map(p => `
+        <div class="luxe-carousel-item">
+            ${createProductCardHTML(p, '')}
+        </div>
+    `).join('');
 
     // 3. New Arrivals - Filter new arrivals
     const newArrivals = window.LUXE_PRODUCTS.filter(p => p.isNewArrival);
-    newArrivalsGrid.innerHTML = newArrivals.map(p => createProductCardHTML(p, 'col-lg-3 col-md-6')).join('');
+    newArrivalsGrid.innerHTML = newArrivals.map(p => `
+        <div class="luxe-carousel-item">
+            ${createProductCardHTML(p, '')}
+        </div>
+    `).join('');
+
+    // Initialize all 3 product carousels
+    window.initLuxeCarousel('home-featured-grid', 'featured-prev', 'featured-next');
+    window.initLuxeCarousel('home-best-sellers-track', 'best-seller-prev', 'best-seller-next');
+    window.initLuxeCarousel('home-new-arrivals-grid', 'new-arrival-prev', 'new-arrival-next');
 }
 
 function renderBrandCarousel() {
@@ -1827,8 +1825,12 @@ function appendGlobalReviewsSection(container) {
                     <p class="text-muted mt-2" style="max-width:520px;margin:0 auto;">See what others are saying about Luxe Aroma fragrances.</p>
                 </div>
 
-                <!-- Reviews List -->
-                <div class="row g-4" id="global-reviews-grid"></div>
+                <!-- Reviews List Slider -->
+                <div class="luxe-carousel-wrap">
+                    <button class="carousel-control-btn carousel-control-prev" id="reviews-prev"><i class="fas fa-chevron-left"></i></button>
+                    <div class="luxe-carousel-track" id="global-reviews-grid"></div>
+                    <button class="carousel-control-btn carousel-control-next" id="reviews-next"><i class="fas fa-chevron-right"></i></button>
+                </div>
 
                 <!-- Write a Review Toggle Button -->
                 <div class="text-center mt-5">
@@ -1903,8 +1905,8 @@ function appendGlobalReviewsSection(container) {
     function renderGlobalReviews() {
         if (!grid) return;
         grid.innerHTML = [...window.LUXE_REVIEWS].reverse().map(r => `
-            <div class="col-md-6">
-                <div class="review-card">
+            <div class="luxe-carousel-item review-slider-item">
+                <div class="review-card" style="height: 100%;">
                     <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                         <div class="d-flex align-items-center gap-3">
                             <div class="review-avatar-circle">${r.name.charAt(0).toUpperCase()}</div>
@@ -1922,6 +1924,9 @@ function appendGlobalReviewsSection(container) {
                 </div>
             </div>
         `).join('');
+        
+        // Initialize reviews carousel
+        window.initLuxeCarousel('global-reviews-grid', 'reviews-prev', 'reviews-next');
     }
     renderGlobalReviews();
 
@@ -2183,3 +2188,101 @@ window.handleUserProfileClick = function() {
         window.location.hash = "#login";
     }
 };
+
+// Reusable Luxury Carousel Initialization with Controls & Touch Swiping
+window.initLuxeCarousel = function(trackId, prevBtnId, nextBtnId) {
+    const track = document.getElementById(trackId);
+    let prevBtn = document.getElementById(prevBtnId);
+    let nextBtn = document.getElementById(nextBtnId);
+    if (!track || !prevBtn || !nextBtn) return;
+
+    // Clone buttons to strip old event listeners and prevent stacking
+    const newPrevBtn = prevBtn.cloneNode(true);
+    const newNextBtn = nextBtn.cloneNode(true);
+    prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
+    nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+    
+    prevBtn = newPrevBtn;
+    nextBtn = newNextBtn;
+
+    let scrollPos = 0;
+
+    
+    // Swipe support variables
+    let startX = 0;
+    let currentTranslate = 0;
+    let prevTranslate = 0;
+    let isDragging = false;
+
+    const getCardWidth = () => {
+        const firstItem = track.querySelector('.luxe-carousel-item');
+        if (!firstItem) return 300;
+        return firstItem.offsetWidth + 30; // card width + gap
+    };
+
+    const updateSliderPosition = () => {
+        track.style.transition = 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)';
+        track.style.transform = `translateX(-${scrollPos}px)`;
+    };
+
+    nextBtn.addEventListener('click', () => {
+        const maxScroll = track.scrollWidth - track.clientWidth;
+        if (maxScroll <= 0) return;
+        const step = getCardWidth();
+        scrollPos = Math.min(scrollPos + step, maxScroll);
+        updateSliderPosition();
+    });
+
+    prevBtn.addEventListener('click', () => {
+        const step = getCardWidth();
+        scrollPos = Math.max(scrollPos - step, 0);
+        updateSliderPosition();
+    });
+
+    // Touch swiping logic for touchscreens
+    track.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        isDragging = true;
+        track.style.transition = 'none';
+    }, { passive: true });
+
+    track.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const currentX = e.touches[0].clientX;
+        const diff = currentX - startX;
+        currentTranslate = -scrollPos + diff;
+
+        // Add edge resistance
+        const maxScroll = -(track.scrollWidth - track.clientWidth);
+        if (currentTranslate > 0) {
+            currentTranslate = currentTranslate * 0.3;
+        } else if (currentTranslate < maxScroll) {
+            currentTranslate = maxScroll + (currentTranslate - maxScroll) * 0.3;
+        }
+
+        track.style.transform = `translateX(${currentTranslate}px)`;
+    }, { passive: true });
+
+    track.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        // Calculate ending scroll position based on where dragging stopped
+        const maxScroll = track.scrollWidth - track.clientWidth;
+        const currentScroll = -currentTranslate;
+
+        // Snap to nearest item width boundary
+        const step = getCardWidth();
+        let index = Math.round(currentScroll / step);
+        scrollPos = Math.max(0, Math.min(index * step, maxScroll));
+        
+        updateSliderPosition();
+    });
+
+    // Handle Window Resize
+    window.addEventListener('resize', () => {
+        scrollPos = 0;
+        track.style.transform = `translateX(0px)`;
+    });
+};
+

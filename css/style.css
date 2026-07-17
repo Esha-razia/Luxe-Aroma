@@ -630,39 +630,55 @@ a:hover {
     color: var(--white);
 }
 
-/* --- Best Sellers Carousel --- */
-.best-sellers-carousel-wrap {
+/* ========================================
+   LUXURY CAROUSEL SYSTEM
+   ======================================== */
+.luxe-carousel-wrap {
     position: relative;
     overflow: hidden;
-    padding: 20px 0;
+    padding: 20px 50px;
 }
-.carousel-track {
+.luxe-carousel-track {
     display: flex;
     gap: 30px;
     transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    will-change: transform;
 }
-.carousel-item-luxe {
+.luxe-carousel-item {
     flex: 0 0 calc(25% - 22.5px);
     min-width: 280px;
+    display: flex;
+    flex-direction: column;
 }
 @media (max-width: 1199.98px) {
-    .carousel-item-luxe { flex: 0 0 calc(33.333% - 20px); }
+    .luxe-carousel-item { flex: 0 0 calc(33.333% - 20px); }
 }
 @media (max-width: 767.98px) {
-    .carousel-item-luxe { flex: 0 0 calc(50% - 15px); }
+    .luxe-carousel-item { flex: 0 0 calc(50% - 15px); }
 }
 @media (max-width: 575.98px) {
-    .carousel-item-luxe { flex: 0 0 100%; }
+    .luxe-carousel-item { flex: 0 0 100%; }
 }
+
+/* Custom width for Reviews carousel items */
+.review-slider-item {
+    flex: 0 0 calc(50% - 15px);
+    min-width: 320px;
+}
+@media (max-width: 767.98px) {
+    .review-slider-item { flex: 0 0 100%; }
+}
+
+/* Navigation controls for sliders */
 .carousel-control-btn {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
     width: 45px;
     height: 45px;
-    border-radius: 0;
+    border-radius: 50%;
     background-color: var(--card-bg);
-    border: 1px solid var(--border-soft);
+    border: 1px solid var(--border-color);
     color: var(--text-main);
     display: flex;
     align-items: center;
@@ -672,12 +688,24 @@ a:hover {
     cursor: pointer;
 }
 .carousel-control-btn:hover {
-    border-color: var(--primary-blue);
-    color: var(--primary-blue);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border-color: var(--text-main);
+    background-color: var(--text-main);
+    color: var(--white);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
-.carousel-control-prev { left: 0; }
-.carousel-control-next { right: 0; }
+.carousel-control-prev { left: 10px; }
+.carousel-control-next { right: 10px; }
+
+/* Mobile responsiveness adjustments */
+@media (max-width: 575.98px) {
+    .carousel-control-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 0.8rem;
+    }
+    .carousel-control-prev { left: 5px; }
+    .carousel-control-next { right: 5px; }
+}
 
 /* --- Brand Carousel --- */
 .brand-carousel-container {
