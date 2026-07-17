@@ -104,33 +104,23 @@ a:hover {
     animation: loaderLogoReveal 1.5s forwards ease-in-out;
 }
 .loader-logo span {
-    color: var(--primary-blue);
+    color: var(--text-main);
 }
-.loader-spinner {
+.loader-progress-bar {
+    width: 180px;
+    height: 1px;
+    background-color: var(--border-soft);
     position: relative;
-    width: 80px;
-    height: 80px;
+    overflow: hidden;
 }
-.loader-spinner::before, .loader-spinner::after {
-    content: '';
+.loader-progress-fill {
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    border: 1px solid transparent;
-    border-radius: 50%;
-}
-.loader-spinner::before {
-    border-top-color: var(--primary-blue);
-    border-bottom-color: var(--primary-blue);
-    animation: spin 1.5s infinite linear;
-}
-.loader-spinner::after {
-    border-left-color: var(--text-main);
-    border-right-color: var(--text-main);
-    animation: spinReverse 1.5s infinite linear;
-    transform: scale(0.85);
+    height: 100%;
+    width: 40%;
+    background-color: var(--text-main);
+    animation: luxuryBarProgress 1.6s infinite ease-in-out;
 }
 
 @keyframes loaderLogoReveal {
@@ -139,13 +129,10 @@ a:hover {
         transform: scale(1);
     }
 }
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-@keyframes spinReverse {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(-360deg); }
+@keyframes luxuryBarProgress {
+    0% { left: -40%; width: 40%; }
+    50% { width: 30%; }
+    100% { left: 100%; width: 40%; }
 }
 
 /* --- Floating Controls --- */
@@ -1617,45 +1604,135 @@ a:hover {
 
 
 
-/* --- Responsive Adjustments --- */
+/* ========================================
+   COMPREHENSIVE MOBILE RESPONSIVENESS
+   ======================================== */
+
+/* Tablet: 992px and below */
 @media (max-width: 991.98px) {
+    /* Hero */
     .hero-wrapper {
         text-align: center;
-        padding-top: 120px;
-        padding-bottom: 60px;
+        padding-top: 110px;
+        padding-bottom: 50px;
+        min-height: auto;
     }
-    .hero-title {
-        font-size: 2.8rem;
-    }
+    .hero-title { font-size: 2.6rem; }
     .hero-sub {
         margin-left: auto;
         margin-right: auto;
+        font-size: 1rem;
     }
-    .hero-bottle-container {
-        margin-top: 50px;
-    }
-    .detail-info {
-        padding-left: 0;
-        margin-top: 40px;
-    }
+    .hero-bottle-container { margin-top: 30px; }
+    .hero-bottle-img { max-height: 320px; }
+
+    /* Product detail */
+    .detail-info { padding-left: 0; margin-top: 30px; }
+
+    /* Carousel wrap padding reduced */
+    .luxe-carousel-wrap { padding: 16px 44px; }
 }
-@media (max-width: 575.98px) {
-    .hero-title {
-        font-size: 2.2rem;
+
+/* Mobile: 767px and below */
+@media (max-width: 767.98px) {
+    /* Hero - image first on mobile, then text */
+    .hero-wrapper {
+        padding-top: 100px;
+        padding-bottom: 40px;
     }
-    .countdown-container {
-        justify-content: center;
-    }
-    .section-title {
-        font-size: 2rem;
-    }
+    .hero-title { font-size: 2rem; }
+    .hero-sub { font-size: 0.95rem; margin-bottom: 24px; }
+    .hero-bottle-img { max-height: 240px; }
+    .hero-bottle-container { margin-top: 0; margin-bottom: 20px; }
+
+    /* Section titles */
+    .section-title { font-size: 1.8rem; }
+    .section-subtitle { font-size: 0.65rem; }
+
+    /* Carousel - show 1 card on small mobile */
+    .luxe-carousel-wrap { padding: 14px 40px; }
+    .luxe-carousel-track { gap: 16px; }
+
+    /* Contact info stack nicely */
+    .contact-info-card { flex-direction: column; text-align: center; }
+    .contact-info-icon { margin: 0 auto 10px; }
+
+    /* Shop grid - 2 columns on mobile */
+    #shop-grid .col-md-6 { width: 50% !important; }
+
+    /* Hide cart subtotal columns on mobile */
     .cart-table th:nth-child(3),
     .cart-table td:nth-child(3),
     .cart-table th:nth-child(4),
-    .cart-table td:nth-child(4) {
-        display: none;
-    }
+    .cart-table td:nth-child(4) { display: none; }
+
+    /* Checkout panel padding */
+    .checkout-panel { padding: 20px 16px; }
+
+    /* Review card full width */
+    .review-slider-item { flex: 0 0 100%; min-width: 0; }
+
+    /* Newsletter form stack */
+    .newsletter-form { flex-direction: column; gap: 12px; }
+    .newsletter-input { width: 100%; border-radius: 0; }
+    .newsletter-btn { width: 100%; justify-content: center; }
+
+    /* Footer columns */
+    .footer-luxe .col-lg-4,
+    .footer-luxe .col-lg-2 { text-align: center; }
+    .footer-social-links { justify-content: center; }
+
+    /* Track order page */
+    .track-result-header { flex-direction: column; gap: 10px; text-align: center; }
+
+    /* Map iframe full width */
+    .map-placeholder iframe { height: 220px; }
+
+    /* Why us cards */
+    .why-us-card { padding: 20px 16px; }
+
+    /* Countdown */
+    .countdown-container { justify-content: center; flex-wrap: wrap; gap: 10px; }
+    .countdown-block { min-width: 60px; }
+    .countdown-num { font-size: 2rem; }
 }
+
+/* Small mobile: 575px and below */
+@media (max-width: 575.98px) {
+    .hero-title { font-size: 1.75rem; }
+    .section-title { font-size: 1.6rem; }
+    .hero-bottle-img { max-height: 200px; }
+
+    /* Carousel arrow buttons smaller */
+    .carousel-control-btn { width: 32px; height: 32px; font-size: 0.75rem; }
+    .carousel-control-prev { left: 4px; }
+    .carousel-control-next { right: 4px; }
+    .luxe-carousel-wrap { padding: 12px 36px; }
+
+    /* Product cards - 2 per row on small phone too */
+    #shop-grid .col-md-6 { width: 50% !important; }
+    #shop-grid .col-lg-4 { width: 50% !important; }
+
+    /* Smaller product card padding */
+    .product-card { padding: 12px; }
+    .product-card-img-wrap { height: 140px; }
+
+    /* Contact page */
+    .contact-info-card { padding: 16px; }
+
+    /* Section padding reduced */
+    .section-padding { padding: 40px 0; }
+
+    /* Newsletter */
+    .newsletter-card { padding: 30px 20px; }
+
+    /* Buttons stack */
+    .d-flex.gap-3 { gap: 10px !important; }
+
+    /* Form controls */
+    .form-control-luxe { font-size: 0.85rem; }
+}
+
 
 /* ========================================
    REVIEW CARDS & WRITE REVIEW FORM

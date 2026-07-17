@@ -31,7 +31,9 @@
     <!-- Preloader Screen -->
     <div id="preloader">
         <div class="loader-logo">LUXE <span>AROMA</span></div>
-        <div class="loader-spinner"></div>
+        <div class="loader-progress-bar">
+            <div class="loader-progress-fill"></div>
+        </div>
     </div>
 
     <!-- Sticky Navigation Bar -->
@@ -189,7 +191,7 @@
                 if (grid) {
                     const filtered = window.LUXE_PRODUCTS.filter(p => state.wishlist.includes(p.id));
                     document.getElementById('shop-results-count').textContent = `Showing Wishlist (${filtered.length} products)`;
-                    grid.innerHTML = filtered.map(p => createProductCardHTML(p, 'col-md-6 col-lg-4')).join('');
+                    grid.innerHTML = filtered.map(p => createProductCardHTML(p, 'col-6 col-md-6 col-lg-4')).join('');
                 }
             }, 100);
         }

@@ -151,6 +151,17 @@ function handleRoute() {
         }
     });
 
+    // Automatically close the mobile hamburger menu if open
+    const navbarCollapse = document.getElementById('luxeNavbar');
+    if (navbarCollapse && navbarCollapse.classList.contains('show')) {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Collapse) {
+            const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse) || new bootstrap.Collapse(navbarCollapse, { toggle: false });
+            bsCollapse.hide();
+        } else {
+            navbarCollapse.classList.remove('show');
+        }
+    }
+
     // Parse dynamic routes (e.g. #product-details/1)
     if (hash.startsWith('#product-details/')) {
         const productId = parseInt(hash.split('/')[1]);
@@ -345,7 +356,7 @@ function renderHomePage(container) {
         <section class="hero-wrapper">
             <div class="container relative z-3">
                 <div class="row align-items-center">
-                    <div class="col-lg-6" data-aos="fade-right">
+                    <div class="col-lg-6 order-2 order-lg-1" data-aos="fade-right">
                         <span class="section-subtitle">Exquisite Fragrance</span>
                         <h1 class="hero-title"><span class="typing-text">Discover Your Signature Scent</span></h1>
                         <p class="hero-sub">Luxury fragrances crafted to express your unique personality, sophistication, and pure elegance. Inspired by timeless classics and rare ingredients.</p>
@@ -354,7 +365,7 @@ function renderHomePage(container) {
                             <a href="#shop" class="btn btn-luxe-outline">Explore Collection</a>
                         </div>
                     </div>
-                    <div class="col-lg-6 text-center" data-aos="fade-left" data-aos-delay="200">
+                    <div class="col-lg-6 text-center order-1 order-lg-2" data-aos="fade-left" data-aos-delay="200">
                         <div class="hero-bottle-container">
                             <div class="hero-bottle-glow"></div>
                             <img src="images/hero_perfume.png" alt="Luxury Perfume Bottle" class="hero-bottle-img">
@@ -764,7 +775,7 @@ function renderShopGrid() {
         return;
     }
 
-    grid.innerHTML = filtered.map(p => createProductCardHTML(p, 'col-md-6 col-lg-4')).join('');
+    grid.innerHTML = filtered.map(p => createProductCardHTML(p, 'col-6 col-md-6 col-lg-4')).join('');
 }
 
 function setupShopEventListeners() {
@@ -1003,7 +1014,7 @@ function renderProductDetailPage(container, productId) {
     const related = window.LUXE_PRODUCTS.filter(p => p.collection === product.collection && p.id !== product.id).slice(0, 3);
     const relatedGrid = document.getElementById('related-grid');
     if (relatedGrid) {
-        relatedGrid.innerHTML = related.map(p => createProductCardHTML(p, 'col-md-4')).join('');
+        relatedGrid.innerHTML = related.map(p => createProductCardHTML(p, 'col-6 col-md-4')).join('');
     }
 
     // Interactive gallery callbacks
@@ -2013,9 +2024,9 @@ function renderTrackOrderPage(container) {
                 <div class="row justify-content-center" data-aos="fade-up">
                     <div class="col-lg-6">
                         <div class="write-review-card">
-                            <form id="track-order-form" class="d-flex gap-3">
+                            <form id="track-order-form" class="d-flex flex-column flex-sm-row gap-3">
                                 <input type="text" id="track-order-input" class="form-control form-control-luxe flex-grow-1" placeholder="e.g. LXA-A1B2C3D4" required style="letter-spacing:1px;">
-                                <button type="submit" class="btn btn-luxe-primary" style="white-space:nowrap;"><i class="fas fa-search me-2"></i>Track</button>
+                                <button type="submit" class="btn btn-luxe-primary w-100 w-sm-auto" style="white-space:nowrap;"><i class="fas fa-search me-2"></i>Track</button>
                             </form>
                             <p class="text-muted mt-3 mb-0" style="font-size:0.8rem;"><i class="fas fa-info-circle me-1"></i>Your Order ID was shown after placing your order and sent to your email.</p>
                         </div>
@@ -2217,7 +2228,9 @@ window.initLuxeCarousel = function(trackId, prevBtnId, nextBtnId) {
     const getCardWidth = () => {
         const firstItem = track.querySelector('.luxe-carousel-item');
         if (!firstItem) return 300;
-        return firstItem.offsetWidth + 30; // card width + gap
+        const computedStyle = window.getComputedStyle(track);
+        const gapVal = parseFloat(computedStyle.gap) || 0;
+        return firstItem.offsetWidth + gapVal;
     };
 
     const updateSliderPosition = () => {
