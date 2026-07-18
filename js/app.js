@@ -235,7 +235,52 @@ function handleRoute() {
 
 // --- Global DOM Events Handler ---
 function initGlobalEventListeners() {
-    // Reserved for future global click delegation
+    const searchToggle = document.getElementById('header-search-toggle');
+    const searchContainer = document.getElementById('header-search-container');
+    const searchInput = document.getElementById('header-search-input');
+    const searchSubmit = document.getElementById('header-search-submit-btn');
+
+    if (searchToggle && searchContainer && searchInput) {
+        searchToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isActive = searchContainer.classList.toggle('active');
+            if (isActive) {
+                searchInput.focus();
+            }
+        });
+
+        // Close search when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchContainer.contains(e.target) && e.target !== searchToggle && !searchToggle.contains(e.target)) {
+                searchContainer.classList.remove('active');
+            }
+        });
+    }
+
+    const triggerSearch = () => {
+        if (!searchInput) return;
+        const query = searchInput.value.trim();
+        state.shopFilters.search = query;
+        if (window.location.hash !== '#shop') {
+            window.location.hash = '#shop';
+        } else {
+            // Already on shop page, just update the grid
+            renderShopGrid();
+        }
+        searchContainer.classList.remove('active');
+    };
+
+    if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                triggerSearch();
+            }
+        });
+    }
+
+    if (searchSubmit) {
+        searchSubmit.addEventListener('click', triggerSearch);
+    }
 }
 
 // --- Toast Notification Handler ---
@@ -646,7 +691,7 @@ function startCountdownTimer() {
     countdownInterval = setInterval(updateTimer, 1000);
 }
 
-// --- Shop Page Renderer ---
+/// --- Shop Page Renderer ---
 function renderShopPage(container) {
     container.innerHTML = `
         <section class="section-padding" style="padding-top: 140px;">
@@ -661,49 +706,26 @@ function renderShopPage(container) {
                     <div class="col-lg-3 mb-5 mb-lg-0" data-aos="fade-right">
                         <div class="shop-sidebar">
                             
-                            <!-- Search -->
+                            <!-- Collections Pill Filter -->
                             <div class="filter-widget">
-                                <h3 class="filter-title">Search</h3>
-                                <div class="filter-search-box">
-                                    <input type="text" id="shop-search" placeholder="Find a fragrance..." class="filter-search-input" value="${state.shopFilters.search}">
-                                    <button class="filter-search-btn" id="shop-search-btn"><i class="fas fa-search"></i></button>
+                                <h3 class="filter-title">Collections</h3>
+                                <div class="luxe-pill-filter-wrap">
+                                    <button class="luxe-pill-btn ${state.shopFilters.collection.length === 0 ? 'active' : ''}" data-collection="all">All</button>
+                                    ${["French Collection", "Arabian Collection", "Floral Collection", "Men Collection", "Women Collection"].map(c => `
+                                        <button class="luxe-pill-btn ${state.shopFilters.collection.includes(c) ? 'active' : ''}" data-collection="${c}">${c.replace(" Collection", "")}</button>
+                                    `).join('')}
                                 </div>
                             </div>
 
-                            <!-- Collections Accordion -->
-                            <div class="filter-widget filter-accordion">
-                                <h3 class="filter-title filter-accordion-title" id="filter-collection-title">
-                                    Collections
-                                    <span class="filter-accordion-icon"><i class="fas fa-plus"></i></span>
-                                </h3>
-                                <ul class="filter-list filter-accordion-body" id="filter-collection-body" style="display:none;">
-                                    ${["French Collection", "Arabian Collection", "Floral Collection", "Men Collection", "Women Collection"].map(c => `
-                                        <li>
-                                            <label class="filter-checkbox-label">
-                                                <input type="checkbox" class="collection-filter-checkbox" value="${c}" ${state.shopFilters.collection.includes(c) ? 'checked' : ''}>
-                                                ${c}
-                                            </label>
-                                        </li>
-                                    `).join('')}
-                                </ul>
-                            </div>
-
-                            <!-- Gender Accordion -->
-                            <div class="filter-widget filter-accordion">
-                                <h3 class="filter-title filter-accordion-title" id="filter-gender-title">
-                                    Gender
-                                    <span class="filter-accordion-icon"><i class="fas fa-plus"></i></span>
-                                </h3>
-                                <ul class="filter-list filter-accordion-body" id="filter-gender-body" style="display:none;">
+                            <!-- Gender Pill Filter -->
+                            <div class="filter-widget mt-4">
+                                <h3 class="filter-title">Gender</h3>
+                                <div class="luxe-pill-filter-wrap">
+                                    <button class="luxe-pill-btn ${state.shopFilters.gender.length === 0 ? 'active' : ''}" data-gender="all">All</button>
                                     ${["men", "women", "unisex"].map(g => `
-                                        <li>
-                                            <label class="filter-checkbox-label text-capitalize">
-                                                <input type="checkbox" class="gender-filter-checkbox" value="${g}" ${state.shopFilters.gender.includes(g) ? 'checked' : ''}>
-                                                ${g}
-                                            </label>
-                                        </li>
+                                        <button class="luxe-pill-btn text-capitalize ${state.shopFilters.gender.includes(g) ? 'active' : ''}" data-gender="${g}">${g}</button>
                                     `).join('')}
-                                </ul>
+                                </div>
                             </div>
 
                         </div>
@@ -735,7 +757,6 @@ function renderShopPage(container) {
 
     renderShopGrid();
     setupShopEventListeners();
-    initShopFilterAccordions();
 }
 
 function renderShopGrid() {
@@ -790,15 +811,7 @@ function renderShopGrid() {
 }
 
 function setupShopEventListeners() {
-    const searchInput = document.getElementById('shop-search');
     const sortSelect = document.getElementById('shop-sort');
-
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            state.shopFilters.search = e.target.value;
-            renderShopGrid();
-        });
-    }
 
     if (sortSelect) {
         sortSelect.addEventListener('change', (e) => {
@@ -807,47 +820,39 @@ function setupShopEventListeners() {
         });
     }
 
-    // Collection Checkbox Listeners
-    document.querySelectorAll('.collection-filter-checkbox').forEach(cb => {
-        cb.addEventListener('change', () => {
-            const val = cb.value;
-            if (cb.checked) {
-                state.shopFilters.collection.push(val);
+    // Collection Pill Listeners
+    document.querySelectorAll('[data-collection]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const collection = btn.getAttribute('data-collection');
+            if (collection === 'all') {
+                state.shopFilters.collection = [];
             } else {
-                state.shopFilters.collection = state.shopFilters.collection.filter(c => c !== val);
+                if (state.shopFilters.collection.includes(collection)) {
+                    state.shopFilters.collection = state.shopFilters.collection.filter(c => c !== collection);
+                } else {
+                    state.shopFilters.collection.push(collection);
+                }
             }
-            renderShopGrid();
+            // Re-render shop page to update active state of buttons and refresh results
+            renderShopPage(document.getElementById('app-content'));
         });
     });
 
-    // Gender Checkbox Listeners
-    document.querySelectorAll('.gender-filter-checkbox').forEach(cb => {
-        cb.addEventListener('change', () => {
-            const val = cb.value;
-            if (cb.checked) {
-                state.shopFilters.gender.push(val);
+    // Gender Pill Listeners
+    document.querySelectorAll('[data-gender]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const gender = btn.getAttribute('data-gender');
+            if (gender === 'all') {
+                state.shopFilters.gender = [];
             } else {
-                state.shopFilters.gender = state.shopFilters.gender.filter(g => g !== val);
+                if (state.shopFilters.gender.includes(gender)) {
+                    state.shopFilters.gender = state.shopFilters.gender.filter(g => g !== gender);
+                } else {
+                    state.shopFilters.gender.push(gender);
+                }
             }
-            renderShopGrid();
-        });
-    });
-}
-
-function initShopFilterAccordions() {
-    ['collection', 'gender'].forEach(key => {
-        const title = document.getElementById(`filter-${key}-title`);
-        const body  = document.getElementById(`filter-${key}-body`);
-        if (!title || !body) return;
-
-        title.style.cursor = 'pointer';
-        title.addEventListener('click', () => {
-            const isOpen = body.style.display !== 'none';
-            body.style.display = isOpen ? 'none' : 'block';
-            const icon = title.querySelector('i');
-            if (icon) {
-                icon.className = isOpen ? 'fas fa-plus' : 'fas fa-minus';
-            }
+            // Re-render shop page to update active state of buttons and refresh results
+            renderShopPage(document.getElementById('app-content'));
         });
     });
 }

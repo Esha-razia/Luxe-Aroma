@@ -440,6 +440,7 @@ a:hover {
     margin-bottom: 60px;
 }
 .section-subtitle {
+    display: block;
     color: var(--primary-blue);
     font-size: 0.85rem;
     font-weight: 600;
@@ -985,17 +986,7 @@ a:hover {
     font-weight: 600;
     margin-bottom: 25px;
     position: relative;
-    padding-bottom: 10px;
     color: var(--text-main);
-}
-.footer-widget-title::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 35px;
-    height: 1px;
-    background-color: var(--primary-blue);
 }
 .footer-links {
     list-style: none;
@@ -1684,10 +1675,10 @@ a:hover {
     .review-slider-item { flex: 0 0 100%; min-width: 0; }
 
 
-    /* Footer columns */
+    /* Footer columns left-aligned */
     .footer-luxe .col-lg-4,
-    .footer-luxe .col-lg-2 { text-align: center; }
-    .footer-social-links { justify-content: center; }
+    .footer-luxe .col-lg-2 { text-align: left; }
+    .footer-social-links { justify-content: flex-start; }
 
     /* Track order page */
     .track-result-header { flex-direction: column; gap: 10px; text-align: center; }
@@ -2153,6 +2144,95 @@ a:hover {
         margin-top: 12px;
     }
     /* Nav icons on mobile – slightly smaller to fit next to hamburger */
-    .nav-icons { gap: 8px; }
-    .nav-icon-btn { font-size: 0.9rem; padding: 4px; }
+    .nav-icons { 
+        gap: 6px !important; 
+        margin-right: 2px !important;
+    }
+    .nav-icon-btn { 
+        font-size: 0.85rem; 
+        padding: 4px; 
+    }
+    .navbar-toggler-luxe {
+        font-size: 1.25rem;
+        padding: 4px 6px;
+    }
+}
+
+/* ========================================
+   HEADER COLLAPSIBLE SEARCH BAR
+   ======================================== */
+.header-search-container {
+    display: flex;
+    align-items: center;
+    background: var(--white);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    padding: 2px 8px;
+    max-width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.header-search-container.active {
+    max-width: 140px;
+    opacity: 1;
+    margin-right: 6px;
+}
+@media (max-width: 575.98px) {
+    .header-search-container.active {
+        max-width: 90px;
+    }
+}
+.header-search-input {
+    border: none;
+    background: transparent;
+    font-size: 0.75rem;
+    padding: 2px 4px;
+    outline: none;
+    width: 100%;
+    color: var(--text-main);
+}
+.header-search-submit {
+    border: none;
+    background: transparent;
+    color: var(--primary-blue);
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* ========================================
+   PILL BUTTON FILTERS (Shop Sidebar)
+   ======================================== */
+.luxe-pill-filter-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+.luxe-pill-btn {
+    background-color: var(--white);
+    color: var(--text-main);
+    border: 1px solid var(--border-soft);
+    border-radius: 30px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    user-select: none;
+    white-space: nowrap;
+}
+.luxe-pill-btn:hover {
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+    background-color: rgba(10, 108, 255, 0.04);
+}
+.luxe-pill-btn.active {
+    background-color: var(--primary-blue);
+    color: var(--white);
+    border-color: var(--primary-blue);
+    font-weight: 600;
 }
