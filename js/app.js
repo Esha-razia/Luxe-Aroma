@@ -691,8 +691,15 @@ function startCountdownTimer() {
     countdownInterval = setInterval(updateTimer, 1000);
 }
 
-/// --- Shop Page Renderer ---
+// --- Shop Page Renderer ---
 function renderShopPage(container) {
+    // Generate active labels for dropdown buttons
+    const activeCollections = state.shopFilters.collection.map(c => c.replace(" Collection", ""));
+    const collectionLabel = activeCollections.length > 0 ? `Collections (${activeCollections.join(', ')})` : 'Collections';
+
+    const activeGenders = state.shopFilters.gender;
+    const genderLabel = activeGenders.length > 0 ? `Gender (${activeGenders.join(', ')})` : 'Gender';
+
     container.innerHTML = `
         <section class="section-padding" style="padding-top: 140px;">
             <div class="container">
@@ -701,43 +708,47 @@ function renderShopPage(container) {
                     <h1 class="section-title">The Boutique</h1>
                 </div>
                 
-                <div class="row">
-                    <!-- Sidebar Filters -->
-                    <div class="col-lg-3 mb-5 mb-lg-0" data-aos="fade-right">
-                        <div class="shop-sidebar">
-                            
-                            <!-- Collections Pill Filter -->
-                            <div class="filter-widget">
-                                <h3 class="filter-title">Collections</h3>
-                                <div class="luxe-pill-filter-wrap">
-                                    <button class="luxe-pill-btn ${state.shopFilters.collection.length === 0 ? 'active' : ''}" data-collection="all">All</button>
-                                    ${["French Collection", "Arabian Collection", "Floral Collection", "Men Collection", "Women Collection"].map(c => `
-                                        <button class="luxe-pill-btn ${state.shopFilters.collection.includes(c) ? 'active' : ''}" data-collection="${c}">${c.replace(" Collection", "")}</button>
-                                    `).join('')}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <!-- Top Filter Bar -->
+                        <div class="luxe-top-filter-bar">
+                            <div class="d-flex gap-3 align-items-center flex-wrap">
+                                <!-- Collections Dropdown -->
+                                <div class="luxe-dropdown-wrapper">
+                                    <button class="btn-luxe-dropdown ${state.shopFilters.collection.length > 0 ? 'active-filter' : ''}" id="dropdown-collection-btn">
+                                        <span>${collectionLabel}</span> <i class="fas fa-chevron-down ms-2"></i>
+                                    </button>
+                                    <div class="luxe-dropdown-menu" id="dropdown-collection-menu">
+                                        <h5 class="dropdown-heading mb-3">Select Collections</h5>
+                                        <div class="luxe-pill-filter-wrap">
+                                            <button class="luxe-pill-btn ${state.shopFilters.collection.length === 0 ? 'active' : ''}" data-collection="all">All</button>
+                                            ${["French Collection", "Arabian Collection", "Floral Collection", "Men Collection", "Women Collection"].map(c => `
+                                                <button class="luxe-pill-btn ${state.shopFilters.collection.includes(c) ? 'active' : ''}" data-collection="${c}">${c.replace(" Collection", "")}</button>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Gender Dropdown -->
+                                <div class="luxe-dropdown-wrapper">
+                                    <button class="btn-luxe-dropdown ${state.shopFilters.gender.length > 0 ? 'active-filter' : ''}" id="dropdown-gender-btn">
+                                        <span class="text-capitalize">${genderLabel}</span> <i class="fas fa-chevron-down ms-2"></i>
+                                    </button>
+                                    <div class="luxe-dropdown-menu" id="dropdown-gender-menu">
+                                        <h5 class="dropdown-heading mb-3">Select Gender</h5>
+                                        <div class="luxe-pill-filter-wrap">
+                                            <button class="luxe-pill-btn ${state.shopFilters.gender.length === 0 ? 'active' : ''}" data-gender="all">All</button>
+                                            ${["men", "women", "unisex"].map(g => `
+                                                <button class="luxe-pill-btn text-capitalize ${state.shopFilters.gender.includes(g) ? 'active' : ''}" data-gender="${g}">${g}</button>
+                                            `).join('')}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Gender Pill Filter -->
-                            <div class="filter-widget mt-4">
-                                <h3 class="filter-title">Gender</h3>
-                                <div class="luxe-pill-filter-wrap">
-                                    <button class="luxe-pill-btn ${state.shopFilters.gender.length === 0 ? 'active' : ''}" data-gender="all">All</button>
-                                    ${["men", "women", "unisex"].map(g => `
-                                        <button class="luxe-pill-btn text-capitalize ${state.shopFilters.gender.includes(g) ? 'active' : ''}" data-gender="${g}">${g}</button>
-                                    `).join('')}
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- Products Grid -->
-                    <div class="col-lg-9" data-aos="fade-left">
-                        <!-- Sort Header -->
-                        <div class="shop-sort-wrap d-flex justify-content-between align-items-center flex-wrap gap-3">
-                            <span class="text-muted" id="shop-results-count">Showing 0 products</span>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="text-muted" style="font-size:0.85rem;">Sort By:</span>
+                            <!-- Sort Header -->
+                            <div class="d-flex align-items-center gap-2 ms-md-auto mt-3 mt-md-0">
+                                <span class="text-muted d-none d-sm-inline" style="font-size:0.85rem;">Sort By:</span>
                                 <select class="shop-sort-select" id="shop-sort">
                                     <option value="featured" ${state.shopFilters.sort === 'featured' ? 'selected' : ''}>Featured</option>
                                     <option value="low-high" ${state.shopFilters.sort === 'low-high' ? 'selected' : ''}>Price: Low to High</option>
@@ -746,8 +757,17 @@ function renderShopPage(container) {
                                 </select>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Product Grid Container -->
+                <div class="row">
+                    <div class="col-12" data-aos="fade-up">
+                        <!-- Sort Header mobile/results -->
+                        <div class="shop-sort-wrap d-flex justify-content-between align-items-center flex-wrap mb-4">
+                            <span class="text-muted" id="shop-results-count">Showing 0 products</span>
+                        </div>
+
+                        <!-- Product Grid Container (Full Width) -->
                         <div class="row g-4" id="shop-grid"></div>
                     </div>
                 </div>
@@ -812,6 +832,35 @@ function renderShopGrid() {
 
 function setupShopEventListeners() {
     const sortSelect = document.getElementById('shop-sort');
+    const collBtn = document.getElementById('dropdown-collection-btn');
+    const collMenu = document.getElementById('dropdown-collection-menu');
+    const gendBtn = document.getElementById('dropdown-gender-btn');
+    const gendMenu = document.getElementById('dropdown-gender-menu');
+
+    if (collBtn && collMenu) {
+        collBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (gendMenu) gendMenu.classList.remove('active');
+            collMenu.classList.toggle('active');
+        });
+    }
+
+    if (gendBtn && gendMenu) {
+        gendBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (collMenu) collMenu.classList.remove('active');
+            gendMenu.classList.toggle('active');
+        });
+    }
+
+    // Close on click outside
+    document.addEventListener('click', () => {
+        if (collMenu) collMenu.classList.remove('active');
+        if (gendMenu) gendMenu.classList.remove('active');
+    });
+
+    if (collMenu) collMenu.addEventListener('click', (e) => e.stopPropagation());
+    if (gendMenu) gendMenu.addEventListener('click', (e) => e.stopPropagation());
 
     if (sortSelect) {
         sortSelect.addEventListener('change', (e) => {
@@ -833,7 +882,6 @@ function setupShopEventListeners() {
                     state.shopFilters.collection.push(collection);
                 }
             }
-            // Re-render shop page to update active state of buttons and refresh results
             renderShopPage(document.getElementById('app-content'));
         });
     });
@@ -851,7 +899,6 @@ function setupShopEventListeners() {
                     state.shopFilters.gender.push(gender);
                 }
             }
-            // Re-render shop page to update active state of buttons and refresh results
             renderShopPage(document.getElementById('app-content'));
         });
     });

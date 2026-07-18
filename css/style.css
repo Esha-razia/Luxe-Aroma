@@ -33,11 +33,12 @@
     padding: 0;
 }
 
-body {
+html, body {
+    overflow-x: hidden;
+    width: 100%;
     background-color: var(--body-bg);
     color: var(--text-body);
     font-family: var(--font-body);
-    overflow-x: hidden;
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
 }
@@ -2143,18 +2144,33 @@ a:hover {
         max-height: 400px;
         margin-top: 12px;
     }
-    /* Nav icons on mobile – slightly smaller to fit next to hamburger */
-    .nav-icons { 
-        gap: 6px !important; 
+    /* Navbar mobile nowrap and overflow fix */
+    .navbar-luxe .container {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+    .navbar-brand-luxe {
+        font-size: 0.95rem !important;
+        letter-spacing: 1px !important;
         margin-right: 2px !important;
+        white-space: nowrap !important;
+    }
+    .nav-icons { 
+        gap: 4px !important; 
+        margin-right: 4px !important;
     }
     .nav-icon-btn { 
-        font-size: 0.85rem; 
-        padding: 4px; 
+        font-size: 0.8rem; 
+        padding: 3px 5px; 
     }
     .navbar-toggler-luxe {
-        font-size: 1.25rem;
+        font-size: 1.15rem;
         padding: 4px 6px;
+        margin-left: 0 !important;
     }
 }
 
@@ -2204,8 +2220,77 @@ a:hover {
 }
 
 /* ========================================
-   PILL BUTTON FILTERS (Shop Sidebar)
+   TOP FILTER BAR & DROPDOWN MENUS
    ======================================== */
+.luxe-top-filter-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card-bg);
+    border: 1px solid var(--border-soft);
+    padding: 12px 20px;
+    border-radius: 8px;
+    position: relative;
+    z-index: 100;
+}
+.luxe-dropdown-wrapper {
+    position: relative;
+}
+.btn-luxe-dropdown {
+    background: var(--white);
+    color: var(--text-main);
+    border: 1px solid var(--border-soft);
+    border-radius: 30px;
+    padding: 8px 18px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.btn-luxe-dropdown:hover {
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+}
+.btn-luxe-dropdown.active-filter {
+    background-color: var(--primary-blue);
+    color: var(--white) !important;
+    border-color: var(--primary-blue);
+}
+.luxe-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    background: var(--white);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    display: none;
+    min-width: 320px;
+    z-index: 110;
+}
+.luxe-dropdown-menu.active {
+    display: block;
+    animation: slideDownFade 0.25s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dropdown-heading {
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-main);
+    border-bottom: 1px solid var(--border-soft);
+    padding-bottom: 8px;
+}
+@keyframes slideDownFade {
+    0% { opacity: 0; transform: translateY(-8px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* PILL BUTTON FILTERS */
 .luxe-pill-filter-wrap {
     display: flex;
     flex-wrap: wrap;
@@ -2218,7 +2303,7 @@ a:hover {
     border: 1px solid var(--border-soft);
     border-radius: 30px;
     padding: 6px 14px;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
