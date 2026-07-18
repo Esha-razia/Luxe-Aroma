@@ -194,9 +194,16 @@ a:hover {
     font-weight: 700;
     letter-spacing: 4px;
     color: var(--text-main) !important;
+    white-space: nowrap;
 }
 .navbar-brand-luxe span {
     color: var(--primary-blue);
+}
+@media (max-width: 767.98px) {
+    .navbar-brand-luxe {
+        font-size: 1.2rem;
+        letter-spacing: 2px;
+    }
 }
 .nav-link-luxe {
     font-family: var(--font-body);
@@ -895,14 +902,16 @@ a:hover {
     display: flex;
     border: 1px solid var(--border-soft);
     background-color: var(--white);
+    overflow: hidden;
 }
 .newsletter-input {
     background: transparent;
     border: none;
-    padding: 15px 20px;
+    padding: 12px 15px;
     color: var(--text-main);
-    flex-grow: 1;
-    font-size: 0.9rem;
+    flex: 1 1 0;
+    font-size: 0.85rem;
+    min-width: 0;
 }
 .newsletter-input:focus {
     outline: none;
@@ -911,13 +920,15 @@ a:hover {
     background-color: var(--primary-blue);
     color: var(--white);
     border: none;
-    padding: 0 30px;
-    font-size: 0.85rem;
+    padding: 12px 18px;
+    font-size: 0.8rem;
     font-weight: 600;
     letter-spacing: 1px;
     text-transform: uppercase;
     transition: var(--transition-medium);
     cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 .newsletter-btn:hover {
     background-color: var(--text-main);
@@ -1721,6 +1732,9 @@ a:hover {
 
     /* Newsletter */
     .newsletter-card { padding: 30px 20px; }
+    .newsletter-form { max-width: 100%; }
+    .newsletter-input { padding: 10px 12px; font-size: 0.8rem; }
+    .newsletter-btn { padding: 10px 14px; font-size: 0.75rem; }
 
     /* Buttons stack */
     .d-flex.gap-3 { gap: 10px !important; }
@@ -2104,26 +2118,30 @@ a:hover {
 }
 
 /* ========================================
-   FOOTER MOBILE ACCORDION
+   FOOTER ACCORDION — ALL SCREENS
    ======================================== */
+.footer-accordion-head {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+.footer-acc-icon {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+/* Desktop: footer links always visible */
+.footer-links {
+    max-height: none;
+    overflow: visible;
+}
+
+/* Mobile: footer links collapsed by default */
 @media (max-width: 767.98px) {
-    .footer-widget-title {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: pointer;
-        padding-bottom: 10px;
-        border-bottom: 1px solid rgba(255,255,255,0.12);
-        margin-bottom: 0 !important;
-    }
-    .footer-widget-title::after {
-        content: '+';
-        font-size: 1.1rem;
-        font-weight: 300;
-        line-height: 1;
-        flex-shrink: 0;
-    }
-    .footer-widget-title.footer-title-open::after { content: '−'; }
     .footer-links {
         max-height: 0;
         overflow: hidden;
@@ -2131,8 +2149,8 @@ a:hover {
         margin-top: 0;
     }
     .footer-links.footer-open {
-        max-height: 300px;
-        margin-top: 14px;
+        max-height: 400px;
+        margin-top: 12px;
     }
     /* Nav icons on mobile – slightly smaller to fit next to hamburger */
     .nav-icons { gap: 8px; }
