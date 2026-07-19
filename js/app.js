@@ -22,6 +22,24 @@ const state = {
     }
 };
 
+// Dynamic Admin Header link renderer
+function updateNavbarAdminLink() {
+    const list = document.querySelector('.navbar-nav');
+    if (!list) return;
+
+    // Remove existing admin links
+    const existing = document.getElementById('nav-admin-link');
+    if (existing) existing.remove();
+
+    if (state.currentUser && state.currentUser.role === 'admin') {
+        const li = document.createElement('li');
+        li.className = 'nav-item';
+        li.id = 'nav-admin-link';
+        li.innerHTML = `<a class="nav-link nav-link-luxe" href="#admin" style="color:var(--primary-blue) !important; font-weight:700;">Admin</a>`;
+        list.appendChild(li);
+    }
+}
+
 // Available coupon codes
 const VALID_COUPONS = {
     "LUXURY20": 20,
@@ -30,8 +48,17 @@ const VALID_COUPONS = {
 };
 
 // --- Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initPreloader();
+    
+    // Load products from DB/LocalStorage
+    try {
+        window.LUXE_PRODUCTS = await LuxeDB.getProducts();
+    } catch (e) {
+        console.error("Database connection failed, using local fallback: ", e);
+    }
+
+    updateNavbarAdminLink();
     initRouter();
     initScrollNavbar();
     initBackToTop();
@@ -218,6 +245,15 @@ function handleRoute() {
         case '#track-order':
             state.activePage = 'track-order';
             renderTrackOrderPage(mainContainer);
+            break;
+        case '#admin':
+            if (!state.currentUser || state.currentUser.role !== 'admin') {
+                showToast("Access Denied", "Please sign in with administrator credentials.");
+                window.location.hash = "#login";
+            } else {
+                state.activePage = 'admin';
+                renderAdminPage(mainContainer);
+            }
             break;
         default:
             state.activePage = 'home';
@@ -1160,7 +1196,7 @@ function renderProductDetailPage(container, productId) {
     // --- Review Submit Handler ---
     const reviewForm = document.getElementById('review-submit-form');
     if (reviewForm) {
-        reviewForm.addEventListener('submit', (e) => {
+        reviewForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('review-name').value.trim();
             const text = document.getElementById('review-text').value.trim();
@@ -1168,9 +1204,24 @@ function renderProductDetailPage(container, productId) {
 
             if (!name || !text) return;
 
+            const now = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            const review = {
+                productId: product.id,
+                author: name,
+                rating: rating,
+                text: text,
+                date: now
+            };
+
+            // Save to database
+            try {
+                await LuxeDB.addReview(review);
+            } catch (err) {
+                console.error("Failed to persist review: ", err);
+            }
+
             const reviewsList = document.getElementById('reviews-list');
             if (reviewsList) {
-                const now = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                 const newCard = document.createElement('div');
                 newCard.className = 'review-card mb-4';
                 newCard.innerHTML = `
@@ -1460,25 +1511,25 @@ function renderCheckoutPage(container) {
                                 <div class="row">
                                     <div class="col-md-6 form-group-luxe">
                                         <label class="form-label-luxe">First Name</label>
-                                        <input type="text" class="form-control form-control-luxe" required placeholder="Lord/Lady">
+                                        <input type="text" id="chk-fname" class="form-control form-control-luxe" required placeholder="Lord/Lady">
                                     </div>
                                     <div class="col-md-6 form-group-luxe">
                                         <label class="form-label-luxe">Last Name</label>
-                                        <input type="text" class="form-control form-control-luxe" required placeholder="Surname">
+                                        <input type="text" id="chk-lname" class="form-control form-control-luxe" required placeholder="Surname">
                                     </div>
                                 </div>
                                 <div class="form-group-luxe">
                                     <label class="form-label-luxe">Email Address</label>
-                                    <input type="email" class="form-control form-control-luxe" required placeholder="you@luxury.com" value="${state.currentUser ? state.currentUser.email : ''}">
+                                    <input type="email" id="chk-email" class="form-control form-control-luxe" required placeholder="you@luxury.com" value="${state.currentUser ? state.currentUser.email : ''}">
                                 </div>
                                 <div class="form-group-luxe">
                                     <label class="form-label-luxe">Delivery Address</label>
-                                    <input type="text" class="form-control form-control-luxe mb-2" required placeholder="Apartment, Street Name">
-                                    <input type="text" class="form-control form-control-luxe" placeholder="City, Country">
+                                    <input type="text" id="chk-address" class="form-control form-control-luxe mb-2" required placeholder="Apartment, Street Name">
+                                    <input type="text" id="chk-city" class="form-control form-control-luxe" placeholder="City, Country">
                                 </div>
                                 <div class="form-group-luxe">
                                     <label class="form-label-luxe">Phone Number</label>
-                                    <input type="tel" class="form-control form-control-luxe" required placeholder="+1 (555) 000-0000">
+                                    <input type="tel" id="chk-phone" class="form-control form-control-luxe" required placeholder="+1 (555) 000-0000">
                                 </div>
 
                                 <h3 class="checkout-title mt-5">Payment Preference</h3>
@@ -1594,7 +1645,7 @@ function renderCheckoutPage(container) {
     // Form submission
     const form = document.getElementById('checkout-form');
     if (form) {
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
             // Generate order info
@@ -1603,6 +1654,31 @@ function renderCheckoutPage(container) {
             const estimatedDelivery = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             const orderedItems = [...state.cart];
             const orderTotal = total;
+
+            // Construct rich order object for database
+            const order = {
+                id: orderId,
+                email: document.getElementById('chk-email').value,
+                items: orderedItems,
+                subtotal: subtotal,
+                discount: discountVal,
+                total: orderTotal,
+                status: "processing",
+                shippingDetails: {
+                    name: document.getElementById('chk-fname').value + ' ' + document.getElementById('chk-lname').value,
+                    address: document.getElementById('chk-address').value,
+                    city: document.getElementById('chk-city').value,
+                    phone: document.getElementById('chk-phone').value
+                },
+                created_at: orderDate
+            };
+
+            // Save to Database (LocalStorage / Supabase)
+            try {
+                await LuxeDB.addOrder(order);
+            } catch (err) {
+                console.error("Order persistence failed: ", err);
+            }
 
             // Empty local cart
             state.cart = [];
@@ -1731,15 +1807,28 @@ function renderLoginPage(container) {
         </div>
     `;
 
-    document.getElementById('login-form').addEventListener('submit', (e) => {
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('login-email').value;
+        const email = document.getElementById('login-email').value.trim();
+        const pass = document.getElementById('login-password').value;
         
-        state.currentUser = { email: email };
-        localStorage.setItem('luxe_user', JSON.stringify(state.currentUser));
-        
-        showToast("Welcome Back", `Successfully signed in as ${email}.`);
-        window.location.hash = "#home";
+        try {
+            const user = await LuxeDB.loginUser(email, pass);
+            state.currentUser = user;
+            localStorage.setItem('luxe_user', JSON.stringify(state.currentUser));
+            
+            // Add admin menu link if role matches
+            updateNavbarAdminLink();
+            
+            showToast("Welcome Back", `Signed in successfully as ${user.name}.`);
+            if (user.role === 'admin') {
+                window.location.hash = "#admin";
+            } else {
+                window.location.hash = "#home";
+            }
+        } catch (err) {
+            showToast("Login Failed", err.message || "Invalid credentials.");
+        }
     });
 }
 
@@ -1754,7 +1843,7 @@ function renderRegisterPage(container) {
                 <form id="register-form">
                     <div class="form-group-luxe">
                         <label class="form-label-luxe">Full Name</label>
-                        <input type="text" class="form-control form-control-luxe" required placeholder="Lord/Lady Name">
+                        <input type="text" id="reg-name" class="form-control form-control-luxe" required placeholder="Lord/Lady Name">
                     </div>
                     <div class="form-group-luxe">
                         <label class="form-label-luxe">Email Address</label>
@@ -1778,9 +1867,10 @@ function renderRegisterPage(container) {
         </div>
     `;
 
-    document.getElementById('register-form').addEventListener('submit', (e) => {
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('reg-email').value;
+        const name = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
         const pass = document.getElementById('reg-pass').value;
         const confirm = document.getElementById('reg-pass-confirm').value;
 
@@ -1794,11 +1884,23 @@ function renderRegisterPage(container) {
             return;
         }
 
-        state.currentUser = { email: email };
-        localStorage.setItem('luxe_user', JSON.stringify(state.currentUser));
+        const newUser = {
+            name: name,
+            email: email,
+            password: pass,
+            role: "user"
+        };
 
-        showToast("Account Created", "Your membership is now active.");
-        window.location.hash = "#home";
+        try {
+            const user = await LuxeDB.registerUser(newUser);
+            state.currentUser = user;
+            localStorage.setItem('luxe_user', JSON.stringify(state.currentUser));
+            updateNavbarAdminLink();
+            showToast("Account Created", "Your membership is now active.");
+            window.location.hash = "#home";
+        } catch (err) {
+            showToast("Registration Failed", err.message || "Failed to create account.");
+        }
     });
 }
 
@@ -2174,39 +2276,44 @@ function renderTrackOrderPage(container) {
         </section>
     `;
 
-    document.getElementById('track-order-form').addEventListener('submit', (e) => {
+    document.getElementById('track-order-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const input = document.getElementById('track-order-input').value.trim().toUpperCase();
+        const inputId = document.getElementById('track-order-input').value.trim().toUpperCase();
         const resultWrap   = document.getElementById('track-result-wrap');
         const notFoundWrap = document.getElementById('track-notfound-wrap');
 
-        // Simulate: any input starting with LXA- is valid
-        const isValid = input.startsWith('LXA-') && input.length >= 8;
+        // Fetch orders from database
+        let order = null;
+        try {
+            const orders = await LuxeDB.getOrders();
+            // Search either by exact ID match
+            order = orders.find(o => o.id === inputId || o.id === `LXA-${inputId}` || `LXA-${o.id}` === inputId);
+        } catch (err) {
+            console.error("Order fetch failed: ", err);
+        }
 
-        if (isValid) {
+        if (order) {
             // Hide not found, show result
             notFoundWrap.style.display = 'none';
             resultWrap.style.removeProperty('display');
             resultWrap.style.display = 'flex';
 
             // Populate order info
-            const orderDate = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-                .toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
-            const estDelivery = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
-                .toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+            const orderDate = order.created_at || new Date().toLocaleDateString('en-US');
+            const estDelivery = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US');
 
-            document.getElementById('track-order-id-display').textContent = input;
+            document.getElementById('track-order-id-display').textContent = order.id;
             document.getElementById('track-order-date').textContent    = orderDate;
-            document.getElementById('track-order-address').textContent  = 'Confirmed at Checkout';
+            document.getElementById('track-order-address').textContent  = order.shippingDetails ? `${order.shippingDetails.address}, ${order.shippingDetails.city}` : 'Confirmed';
             document.getElementById('track-est-delivery').textContent   = estDelivery;
 
-            // Build vertical timeline
+            // Map order status to timeline steps
+            const status = order.status || 'processing';
             const steps = [
-                { icon: 'fa-check',         label: 'Order Placed',       sub: orderDate,               done: true,  active: false },
-                { icon: 'fa-box-open',      label: 'Packaging',          sub: 'Completed',              done: true,  active: false },
-                { icon: 'fa-shipping-fast', label: 'Shipped',            sub: 'In Transit',             done: false, active: true  },
-                { icon: 'fa-home',          label: 'Out for Delivery',   sub: 'Expected soon',          done: false, active: false },
-                { icon: 'fa-smile',         label: 'Delivered',          sub: estDelivery,              done: false, active: false },
+                { icon: 'fa-check',         label: 'Order Placed',       sub: orderDate,               done: true,                   active: false },
+                { icon: 'fa-box-open',      label: 'Packaging',          sub: status === 'processing' ? 'In progress' : 'Completed',  done: true,                   active: status === 'processing' },
+                { icon: 'fa-shipping-fast', label: 'Shipped',            sub: status === 'shipped' ? 'In Transit' : (status === 'delivered' ? 'Completed' : 'Pending'), done: (status === 'shipped' || status === 'delivered'), active: status === 'shipped' },
+                { icon: 'fa-smile',         label: 'Delivered',          sub: status === 'delivered' ? 'Handed over' : estDelivery,    done: status === 'delivered', active: status === 'delivered' }
             ];
 
             document.getElementById('track-timeline-vertical').innerHTML = steps.map(s => `
@@ -2273,6 +2380,463 @@ function createProductCardHTML(p, gridClass = 'col-lg-3 col-md-6') {
             </div>
         </div>
     `;
+}
+
+async function renderAdminPage(container) {
+    container.innerHTML = `
+        <div class="container py-5 text-center" style="padding-top: 150px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">Securing admin gateway data...</p>
+        </div>
+    `;
+
+    // Fetch dashboard metrics
+    let products = [], orders = [], users = [], reviews = [];
+    try {
+        products = await LuxeDB.getProducts();
+        orders = await LuxeDB.getOrders();
+        users = await LuxeDB.getUsers();
+        reviews = await LuxeDB.getReviews();
+    } catch (e) {
+        console.error("Failed to load dashboard data: ", e);
+    }
+
+    const totalSales = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+    // Active sub-panel state
+    let activeTab = 'orders'; 
+
+    function renderDashboardContent() {
+        // Tab links active state
+        const isOrders = activeTab === 'orders';
+        const isProducts = activeTab === 'products';
+        const isUsers = activeTab === 'users';
+        const isReviews = activeTab === 'reviews';
+
+        container.innerHTML = `
+            <section class="section-padding" style="padding-top: 140px;">
+                <div class="container">
+                    <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+                        <div>
+                            <span class="section-subtitle">Management Console</span>
+                            <h1 class="section-title mb-0">Admin Panel</h1>
+                        </div>
+                        <button class="btn btn-luxe-secondary" id="admin-logout-btn"><i class="fas fa-sign-out-alt me-2"></i>Logout</button>
+                    </div>
+
+                    <!-- Metrics cards -->
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <span class="metric-title">Total Sales</span>
+                                <span class="metric-value">$${Math.round(totalSales)}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <span class="metric-title">Orders Logs</span>
+                                <span class="metric-value">${orders.length}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <span class="metric-title">Registered Members</span>
+                                <span class="metric-value">${users.length}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="metric-card">
+                                <span class="metric-title">Catalog Fragrances</span>
+                                <span class="metric-value">${products.length}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab switching row -->
+                    <div class="admin-tabs mb-4">
+                        <button class="admin-tab-btn ${isOrders ? 'active' : ''}" data-tab="orders"><i class="fas fa-receipt me-2"></i>Orders</button>
+                        <button class="admin-tab-btn ${isProducts ? 'active' : ''}" data-tab="products"><i class="fas fa-gem me-2"></i>Fragrances</button>
+                        <button class="admin-tab-btn ${isUsers ? 'active' : ''}" data-tab="users"><i class="fas fa-users me-2"></i>Members</button>
+                        <button class="admin-tab-btn ${isReviews ? 'active' : ''}" data-tab="reviews"><i class="fas fa-star me-2"></i>Reviews</button>
+                    </div>
+
+                    <!-- Active tab sub-panel layout -->
+                    <div class="admin-panel-card" id="admin-panel-content">
+                        ${renderActiveTabPanel()}
+                    </div>
+                </div>
+            </section>
+        `;
+
+        setupTabEventListeners();
+    }
+
+    function renderActiveTabPanel() {
+        if (activeTab === 'orders') {
+            if (orders.length === 0) {
+                return `<p class="text-muted text-center py-4">No order records found.</p>`;
+            }
+            return `
+                <div class="table-responsive">
+                    <table class="table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Client Email</th>
+                                <th>Items</th>
+                                <th>Paid</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${orders.map(o => {
+                                const statusClass = o.status === 'delivered' ? 'bg-success' : (o.status === 'shipped' ? 'bg-primary' : 'bg-warning');
+                                return `
+                                    <tr>
+                                        <td><strong>${o.id}</strong></td>
+                                        <td>${o.email}</td>
+                                        <td>${o.items.map(i => `${i.name} (x${i.quantity || i.qty})`).join(', ')}</td>
+                                        <td>$${o.total}</td>
+                                        <td><span class="badge ${statusClass} text-capitalize">${o.status}</span></td>
+                                        <td>
+                                            ${o.status === 'processing' ? `<button class="btn btn-sm btn-outline-primary me-2 mark-shipped-btn" data-order="${o.id}">Ship</button>` : ''}
+                                            ${o.status === 'shipped' ? `<button class="btn btn-sm btn-outline-success mark-delivered-btn" data-order="${o.id}">Deliver</button>` : ''}
+                                            ${o.status === 'delivered' ? `<span class="text-muted">No actions</span>` : ''}
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        if (activeTab === 'products') {
+            return `
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                    <h4 class="mb-0">Product Catalog Management</h4>
+                    <button class="btn btn-luxe-primary btn-sm" id="btn-add-product"><i class="fas fa-plus me-2"></i>Add Fragrance</button>
+                </div>
+                
+                <!-- Product Form (Add/Edit) -->
+                <div id="product-form-container" class="mb-5 d-none">
+                    <div class="write-review-card">
+                        <h4 id="form-action-title">Add New Fragrance</h4>
+                        <form id="admin-product-form">
+                            <input type="hidden" id="edit-prod-id">
+                            <div class="row">
+                                <div class="col-md-6 form-group-luxe">
+                                    <label class="form-label-luxe">Fragrance Name</label>
+                                    <input type="text" id="prod-name" class="form-control form-control-luxe" required placeholder="e.g. Oud Royale">
+                                </div>
+                                <div class="col-md-6 form-group-luxe">
+                                    <label class="form-label-luxe">Brand</label>
+                                    <input type="text" id="prod-brand" class="form-control form-control-luxe" required placeholder="e.g. Chanel">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 form-group-luxe">
+                                    <label class="form-label-luxe">Price ($)</label>
+                                    <input type="number" id="prod-price" class="form-control form-control-luxe" required placeholder="e.g. 150">
+                                </div>
+                                <div class="col-md-4 form-group-luxe">
+                                    <label class="form-label-luxe">Discount (%)</label>
+                                    <input type="number" id="prod-discount" class="form-control form-control-luxe" placeholder="e.g. 10" value="0">
+                                </div>
+                                <div class="col-md-4 form-group-luxe">
+                                    <label class="form-label-luxe">Collection</label>
+                                    <select id="prod-collection" class="form-control form-control-luxe" required>
+                                        <option value="French Collection">French Collection</option>
+                                        <option value="Arabian Collection">Arabian Collection</option>
+                                        <option value="Floral Collection">Floral Collection</option>
+                                        <option value="Men Collection">Men Collection</option>
+                                        <option value="Women Collection">Women Collection</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 form-group-luxe">
+                                    <label class="form-label-luxe">Gender</label>
+                                    <select id="prod-gender" class="form-control form-control-luxe" required>
+                                        <option value="men">Men</option>
+                                        <option value="women">Women</option>
+                                        <option value="unisex">Unisex</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 form-group-luxe">
+                                    <label class="form-label-luxe">Image File Name (under images/)</label>
+                                    <input type="text" id="prod-image" class="form-control form-control-luxe" required placeholder="e.g. images/perfume_floral.png" value="images/perfume_french.png">
+                                </div>
+                            </div>
+                            <div class="form-group-luxe">
+                                <label class="form-label-luxe">Brief Description</label>
+                                <textarea id="prod-desc" class="form-control form-control-luxe" rows="3" required placeholder="Opulent fragrance profile..."></textarea>
+                            </div>
+                            <div class="form-group-luxe">
+                                <label class="form-label-luxe">Notes & Details (Separate lines)</label>
+                                <textarea id="prod-details" class="form-control form-control-luxe" rows="3" required placeholder="Top Notes: Saffron&#10;Heart Notes: Amber&#10;Base Notes: Musk"></textarea>
+                            </div>
+                            <div class="form-group-luxe">
+                                <label class="form-label-luxe">Ingredients (Comma separated)</label>
+                                <input type="text" id="prod-ingredients" class="form-control form-control-luxe" required placeholder="Alcohol, Parfum, Aqua">
+                            </div>
+                            
+                            <div class="d-flex gap-3">
+                                <button type="submit" class="btn btn-luxe-primary btn-sm px-4">Save Product</button>
+                                <button type="button" class="btn btn-luxe-secondary btn-sm px-4" id="btn-cancel-product">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Perfume</th>
+                                <th>Collection</th>
+                                <th>Gender</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${products.map(p => `
+                                <tr>
+                                    <td>${p.id}</td>
+                                    <td><strong>${p.name}</strong><br><small class="text-muted">${p.brand}</small></td>
+                                    <td>${p.collection}</td>
+                                    <td class="text-capitalize">${p.gender}</td>
+                                    <td>$${p.price} ${p.discount > 0 ? `<small class="text-success">-${p.discount}%</small>` : ''}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary edit-product-btn me-2" data-id="${p.id}"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-outline-danger delete-product-btn" data-id="${p.id}"><i class="fas fa-trash-alt"></i></button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        if (activeTab === 'users') {
+            return `
+                <h4 class="mb-4">Registered Members List</h4>
+                <div class="table-responsive">
+                    <table class="table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Full Name</th>
+                                <th>Email Address</th>
+                                <th>Account Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${users.map(u => `
+                                <tr>
+                                    <td><strong>${u.name || 'Member'}</strong></td>
+                                    <td>${u.email}</td>
+                                    <td><span class="badge ${u.role === 'admin' ? 'bg-primary' : 'bg-secondary'} text-capitalize">${u.role}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        if (activeTab === 'reviews') {
+            if (reviews.length === 0) {
+                return `<p class="text-muted text-center py-4">No reviews recorded.</p>`;
+            }
+            return `
+                <h4 class="mb-4">Customer Reviews Moderation</h4>
+                <div class="table-responsive">
+                    <table class="table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                <th>Feedback</th>
+                                <th>Rating</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${reviews.map(r => `
+                                <tr>
+                                    <td><strong>${r.author}</strong><br><small class="text-muted">${r.date}</small></td>
+                                    <td style="max-width: 300px; white-space: normal;">${r.text}</td>
+                                    <td>
+                                        <span class="text-warning">
+                                            ${Array(r.rating).fill('<i class="fas fa-star"></i>').join('')}
+                                            ${Array(5 - r.rating).fill('<i class="far fa-star"></i>').join('')}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-danger delete-review-btn" data-id="${r.id}"><i class="fas fa-trash-alt"></i></button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+    }
+
+    function setupTabEventListeners() {
+        // Logout handler
+        const logoutBtn = document.getElementById('admin-logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                state.currentUser = null;
+                localStorage.removeItem('luxe_user');
+                updateNavbarAdminLink();
+                showToast("Signed Out", "Administrator logged out.");
+                window.location.hash = "#home";
+            });
+        }
+
+        // Tab switches
+        document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                activeTab = btn.getAttribute('data-tab');
+                renderDashboardContent();
+            });
+        });
+
+        // Mark Shipped Click Handler
+        document.querySelectorAll('.mark-shipped-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const oid = btn.getAttribute('data-order');
+                await LuxeDB.updateOrderStatus(oid, 'shipped');
+                showToast("Order Dispatched", `Order ${oid} marked as shipped.`);
+                renderAdminPage(container); // reload whole dashboard
+            });
+        });
+
+        // Mark Delivered Click Handler
+        document.querySelectorAll('.mark-delivered-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const oid = btn.getAttribute('data-order');
+                await LuxeDB.updateOrderStatus(oid, 'delivered');
+                showToast("Order Delivered", `Order ${oid} marked as delivered.`);
+                renderAdminPage(container); // reload whole dashboard
+            });
+        });
+
+        // Delete Review Handler
+        document.querySelectorAll('.delete-review-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const rid = btn.getAttribute('data-id');
+                if (confirm("Are you sure you want to delete this customer feedback?")) {
+                    await LuxeDB.deleteReview(rid);
+                    showToast("Feedback Deleted", "Review moderation complete.");
+                    renderAdminPage(container);
+                }
+            });
+        });
+
+        // Product Catalog Form Toggles
+        const addProductBtn = document.getElementById('btn-add-product');
+        const cancelProductBtn = document.getElementById('btn-cancel-product');
+        const formContainer = document.getElementById('product-form-container');
+
+        if (addProductBtn && formContainer) {
+            addProductBtn.addEventListener('click', () => {
+                document.getElementById('admin-product-form').reset();
+                document.getElementById('edit-prod-id').value = '';
+                document.getElementById('form-action-title').textContent = "Add New Fragrance";
+                formContainer.classList.remove('d-none');
+                formContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        }
+
+        if (cancelProductBtn && formContainer) {
+            cancelProductBtn.addEventListener('click', () => {
+                formContainer.classList.add('d-none');
+            });
+        }
+
+        // Product Form Submit Handler
+        const productForm = document.getElementById('admin-product-form');
+        if (productForm) {
+            productForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const editId = document.getElementById('edit-prod-id').value;
+                const newProduct = {
+                    name: document.getElementById('prod-name').value,
+                    brand: document.getElementById('prod-brand').value,
+                    price: parseFloat(document.getElementById('prod-price').value),
+                    discount: parseFloat(document.getElementById('prod-discount').value) || 0,
+                    collection: document.getElementById('prod-collection').value,
+                    gender: document.getElementById('prod-gender').value,
+                    image: document.getElementById('prod-image').value,
+                    description: document.getElementById('prod-desc').value,
+                    details: document.getElementById('prod-details').value,
+                    ingredients: document.getElementById('prod-ingredients').value,
+                    rating: 4.8,
+                    reviewCount: 0,
+                    reviews: []
+                };
+
+                if (editId) {
+                    await LuxeDB.updateProduct(editId, newProduct);
+                    showToast("Catalog Updated", "Fragrance specifications modified.");
+                } else {
+                    await LuxeDB.addProduct(newProduct);
+                    showToast("Catalog Inserted", "New fragrance launched in boutique.");
+                }
+
+                renderAdminPage(container);
+            });
+        }
+
+        // Edit Product Button Click
+        document.querySelectorAll('.edit-product-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const pid = parseInt(btn.getAttribute('data-id'));
+                const p = products.find(prod => prod.id === pid);
+                if (p) {
+                    document.getElementById('edit-prod-id').value = p.id;
+                    document.getElementById('prod-name').value = p.name;
+                    document.getElementById('prod-brand').value = p.brand;
+                    document.getElementById('prod-price').value = p.price;
+                    document.getElementById('prod-discount').value = p.discount || 0;
+                    document.getElementById('prod-collection').value = p.collection;
+                    document.getElementById('prod-gender').value = p.gender;
+                    document.getElementById('prod-image').value = p.image;
+                    document.getElementById('prod-desc').value = p.description;
+                    document.getElementById('prod-details').value = p.details;
+                    document.getElementById('prod-ingredients').value = p.ingredients;
+
+                    document.getElementById('form-action-title').textContent = "Edit Fragrance Specifications";
+                    formContainer.classList.remove('d-none');
+                    formContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        });
+
+        // Delete Product Handler
+        document.querySelectorAll('.delete-product-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const pid = parseInt(btn.getAttribute('data-id'));
+                if (confirm("Are you sure you want to remove this fragrance from catalog?")) {
+                    await LuxeDB.deleteProduct(pid);
+                    showToast("Catalog Deleted", "Fragrance removed successfully.");
+                    renderAdminPage(container);
+                }
+            });
+        });
+    }
+
+    renderDashboardContent();
 }
 
 // Global user profile toggle helper (in navbar)
