@@ -452,7 +452,7 @@ function renderHomePage(container) {
         <section class="hero-wrapper">
             <div class="container relative z-3">
                 <div class="row align-items-center">
-                    <div class="col-lg-6 order-2 order-lg-1" data-aos="fade-right">
+                    <div class="col-lg-6 order-1 order-lg-1" data-aos="fade-right">
                         <span class="section-subtitle">Exquisite Fragrance</span>
                         <h1 class="hero-title"><span class="typing-text">Discover Your Signature Scent</span></h1>
                         <p class="hero-sub">Luxury fragrances crafted to express your unique personality, sophistication, and pure elegance. Inspired by timeless classics and rare ingredients.</p>
@@ -461,7 +461,7 @@ function renderHomePage(container) {
                             <a href="#shop" class="btn btn-luxe-outline">Explore Collection</a>
                         </div>
                     </div>
-                    <div class="col-lg-6 text-center order-1 order-lg-2" data-aos="fade-left" data-aos-delay="200">
+                    <div class="col-lg-6 text-center order-2 order-lg-2" data-aos="fade-left" data-aos-delay="200">
                         <div class="hero-bottle-container">
                             <div class="hero-bottle-glow"></div>
                             <img src="images/hero_perfume.png" alt="Luxury Perfume Bottle" class="hero-bottle-img">
@@ -1026,6 +1026,18 @@ function renderProductDetailPage(container, productId) {
                                     </button>
                                     <div class="accordion-body-luxe d-none" id="acc-ing">
                                         <p>${product.ingredients}</p>
+                                    </div>
+                                </div>
+                                <div class="accordion-item-luxe">
+                                    <button class="accordion-header-luxe" onclick="toggleAccordion('acc-faq')">
+                                        Product FAQs <i class="fas fa-chevron-down" id="acc-faq-icon"></i>
+                                    </button>
+                                    <div class="accordion-body-luxe d-none" id="acc-faq">
+                                        <div class="faq-accordion-content" style="font-size: 0.85rem; line-height: 1.6; color: var(--text-body);">
+                                            <p class="mb-2"><strong>Q: How long does this fragrance last?</strong><br>A: Luxe Aroma fragrances are crafted at high concentration (Eau de Parfum), typically lasting 8 to 12 hours depending on skin type and environment.</p>
+                                            <p class="mb-2"><strong>Q: Are your ingredients ethically sourced?</strong><br>A: Yes, all our organic extracts, including natural Oud and French Jasmine, are sourced from certified ethical botanical partners.</p>
+                                            <p class="mb-0"><strong>Q: Can I return this product if I don't like it?</strong><br>A: We offer a 14-day return policy for unopened items in original packaging. Every order includes a matching 2ml tester sample so you can experience the scent before opening the main bottle.</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
