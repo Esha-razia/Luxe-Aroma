@@ -8,9 +8,9 @@
 const SUPABASE_URL = "";
 const SUPABASE_KEY = "";
 
-let supabase = null;
-if (SUPABASE_URL && SUPABASE_KEY && typeof supabaseJs !== 'undefined') {
-    supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
+let luxeSupabase = null;
+if (SUPABASE_URL && SUPABASE_KEY && typeof supabase !== 'undefined') {
+    luxeSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 }
 
 // Database Seeding / Local Mock Persistence Initializer
@@ -82,8 +82,8 @@ initLocalDatabase();
 window.LuxeDB = {
     // --- Products API ---
     getProducts: async function() {
-        if (supabase) {
-            const { data, error } = await supabase.from('products').select('*');
+        if (luxeSupabase) {
+            const { data, error } = await luxeSupabase.from('products').select('*');
             if (!error) return data;
         }
         // Fallback
@@ -91,8 +91,8 @@ window.LuxeDB = {
     },
 
     addProduct: async function(product) {
-        if (supabase) {
-            const { data, error } = await supabase.from('products').insert([product]).select();
+        if (luxeSupabase) {
+            const { data, error } = await luxeSupabase.from('products').insert([product]).select();
             if (!error) return data[0];
         }
         // Fallback
@@ -106,8 +106,8 @@ window.LuxeDB = {
     },
 
     updateProduct: async function(id, updatedFields) {
-        if (supabase) {
-            const { data, error } = await supabase.from('products').update(updatedFields).eq('id', id).select();
+        if (luxeSupabase) {
+            const { data, error } = await luxeSupabase.from('products').update(updatedFields).eq('id', id).select();
             if (!error) return data[0];
         }
         // Fallback
@@ -123,8 +123,8 @@ window.LuxeDB = {
     },
 
     deleteProduct: async function(id) {
-        if (supabase) {
-            const { error } = await supabase.from('products').delete().eq('id', id);
+        if (luxeSupabase) {
+            const { error } = await luxeSupabase.from('products').delete().eq('id', id);
             if (!error) return true;
         }
         // Fallback
@@ -137,8 +137,8 @@ window.LuxeDB = {
 
     // --- Reviews API ---
     getReviews: async function() {
-        if (supabase) {
-            const { data, error } = await supabase.from('reviews').select('*');
+        if (luxeSupabase) {
+            const { data, error } = await luxeSupabase.from('reviews').select('*');
             if (!error) return data;
         }
         // Fallback
@@ -146,8 +146,8 @@ window.LuxeDB = {
     },
 
     addReview: async function(review) {
-        if (supabase) {
-            const { data, error } = await supabase.from('reviews').insert([review]).select();
+        if (luxeSupabase) {
+            const { data, error } = await luxeSupabase.from('reviews').insert([review]).select();
             if (!error) return data[0];
         }
         // Fallback
@@ -159,8 +159,8 @@ window.LuxeDB = {
     },
 
     deleteReview: async function(id) {
-        if (supabase) {
-            const { error } = await supabase.from('reviews').delete().eq('id', id);
+        if (luxeSupabase) {
+            const { error } = await luxeSupabase.from('reviews').delete().eq('id', id);
             if (!error) return true;
         }
         // Fallback
@@ -172,8 +172,8 @@ window.LuxeDB = {
 
     // --- Orders API ---
     getOrders: async function() {
-        if (supabase) {
-            const { data, error } = await supabase.from('orders').select('*');
+        if (luxeSupabase) {
+            const { data, error } = await luxeSupabase.from('orders').select('*');
             if (!error) return data;
         }
         // Fallback
@@ -181,8 +181,8 @@ window.LuxeDB = {
     },
 
     addOrder: async function(order) {
-        if (supabase) {
-            const { data, error } = await supabase.from('orders').insert([order]).select();
+        if (luxeSupabase) {
+            const { data, error } = await luxeSupabase.from('orders').insert([order]).select();
             if (!error) return data[0];
         }
         // Fallback
@@ -193,8 +193,8 @@ window.LuxeDB = {
     },
 
     updateOrderStatus: async function(orderId, status) {
-        if (supabase) {
-            const { data, error } = await supabase.from('orders').update({ status: status }).eq('id', orderId).select();
+        if (luxeSupabase) {
+            const { data, error } = await luxeSupabase.from('orders').update({ status: status }).eq('id', orderId).select();
             if (!error) return data[0];
         }
         // Fallback
@@ -210,8 +210,8 @@ window.LuxeDB = {
 
     // --- Users / Membership API ---
     getUsers: async function() {
-        if (supabase) {
-            const { data, error } = await supabase.from('users').select('*');
+        if (luxeSupabase) {
+            const { data, error } = await luxeSupabase.from('users').select('*');
             if (!error) return data;
         }
         // Fallback
@@ -219,8 +219,8 @@ window.LuxeDB = {
     },
 
     registerUser: async function(user) {
-        if (supabase) {
-            const { data, error } = await supabase.from('users').insert([user]).select();
+        if (luxeSupabase) {
+            const { data, error } = await luxeSupabase.from('users').insert([user]).select();
             if (!error) return data[0];
         }
         // Fallback
@@ -234,7 +234,7 @@ window.LuxeDB = {
     },
 
     loginUser: async function(email, password) {
-        if (supabase) {
+        if (luxeSupabase) {
             // Real authentication query can go here
         }
         const users = JSON.parse(localStorage.getItem('luxe_users')) || [];
