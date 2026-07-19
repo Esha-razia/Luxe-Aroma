@@ -1056,29 +1056,33 @@ function renderProductDetailPage(container, productId) {
 
                 <!-- Customer Reviews Section -->
                 <div class="row mt-5 pt-5">
-                    <div class="col-lg-10" data-aos="fade-up">
+                    <div class="col-lg-12" data-aos="fade-up">
                         <h3 class="font-heading border-bottom pb-3 mb-4">Customer Reviews</h3>
 
-                        <!-- Existing Reviews -->
-                        <div id="reviews-list">
-                            ${product.reviews.map(r => `
-                                <div class="review-card mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                                        <div class="d-flex align-items-center gap-3">
-                                            <div class="review-avatar-circle">${r.author.charAt(0)}</div>
-                                            <div>
-                                                <h5 class="mb-0" style="font-size: 0.95rem; font-weight: 600;">${r.author}</h5>
-                                                <span class="text-muted" style="font-size: 0.75rem;">${r.date}</span>
+                        <!-- Existing Reviews Carousel -->
+                        <div class="luxe-carousel-wrap">
+                            <button class="carousel-control-btn carousel-control-prev" id="prod-reviews-prev"><i class="fas fa-chevron-left"></i></button>
+                            <div class="luxe-carousel-track" id="prod-reviews-grid">
+                                ${product.reviews.length === 0 ? `<div class="text-muted py-4 w-100 text-center" id="prod-reviews-empty">Be the first to share your experience with this fragrance!</div>` : product.reviews.map(r => `
+                                    <div class="review-card" style="min-width: 280px; max-width: 320px; flex: 0 0 auto; margin-right: 15px;">
+                                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="review-avatar-circle">${r.author.charAt(0).toUpperCase()}</div>
+                                                <div>
+                                                    <h5 class="mb-0" style="font-size: 0.95rem; font-weight: 600;">${r.author}</h5>
+                                                    <span class="text-muted" style="font-size: 0.75rem;">${r.date}</span>
+                                                </div>
+                                            </div>
+                                            <div class="product-card-rating m-0">
+                                                ${Array(r.rating).fill('<i class="fas fa-star"></i>').join('')}
+                                                ${Array(5 - r.rating).fill('<i class="far fa-star"></i>').join('')}
                                             </div>
                                         </div>
-                                        <div class="product-card-rating m-0">
-                                            ${Array(r.rating).fill('<i class="fas fa-star"></i>').join('')}
-                                            ${Array(5 - r.rating).fill('<i class="far fa-star"></i>').join('')}
-                                        </div>
+                                        <p class="mb-0" style="font-size: 0.88rem; color: var(--text-body); line-height: 1.6;">${r.text}</p>
                                     </div>
-                                    <p class="mb-0" style="font-size: 0.88rem; color: var(--text-body); line-height: 1.6;">${r.text}</p>
-                                </div>
-                            `).join('')}
+                                `).join('')}
+                            </div>
+                            <button class="carousel-control-btn carousel-control-next" id="prod-reviews-next"><i class="fas fa-chevron-right"></i></button>
                         </div>
 
                         <!-- Write a Review Toggle Button -->
@@ -1232,10 +1236,14 @@ function renderProductDetailPage(container, productId) {
                 console.error("Failed to persist review: ", err);
             }
 
-            const reviewsList = document.getElementById('reviews-list');
-            if (reviewsList) {
+            const reviewsGrid = document.getElementById('prod-reviews-grid');
+            if (reviewsGrid) {
+                const emptyMsg = document.getElementById('prod-reviews-empty');
+                if (emptyMsg) emptyMsg.remove();
+
                 const newCard = document.createElement('div');
-                newCard.className = 'review-card mb-4';
+                newCard.className = 'review-card';
+                newCard.style.cssText = 'min-width: 280px; max-width: 320px; flex: 0 0 auto; margin-right: 15px;';
                 newCard.innerHTML = `
                     <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                         <div class="d-flex align-items-center gap-3">
@@ -1252,7 +1260,8 @@ function renderProductDetailPage(container, productId) {
                     </div>
                     <p class="mb-0" style="font-size: 0.88rem; color: var(--text-body); line-height: 1.6;">${text}</p>
                 `;
-                reviewsList.insertBefore(newCard, reviewsList.firstChild);
+                reviewsGrid.insertBefore(newCard, reviewsGrid.firstChild);
+                window.initLuxeCarousel('prod-reviews-grid', 'prod-reviews-prev', 'prod-reviews-next');
             }
 
             // Hide form and show write review button again
@@ -1285,6 +1294,11 @@ function renderProductDetailPage(container, productId) {
             toggleBtn.style.display = 'inline-block';
         });
     }
+
+    // Initialize reviews carousel
+    setTimeout(() => {
+        window.initLuxeCarousel('prod-reviews-grid', 'prod-reviews-prev', 'prod-reviews-next');
+    }, 100);
 }
 
 // --- Cart Page Renderer ---
