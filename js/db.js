@@ -15,7 +15,7 @@ if (SUPABASE_URL && SUPABASE_KEY && typeof supabase !== 'undefined') {
 
 // Database Seeding / Local Mock Persistence Initializer
 function initLocalDatabase() {
-    if (!localStorage.getItem('luxe_db_initialized')) {
+    if (!localStorage.getItem('luxe_db_initialized_v3')) {
         // Seed default products from products.js
         if (window.LUXE_PRODUCTS) {
             localStorage.setItem('luxe_products', JSON.stringify(window.LUXE_PRODUCTS));
@@ -54,11 +54,11 @@ function initLocalDatabase() {
                 id: "LA-98754",
                 email: "user@luxearoma.com",
                 items: [
-                    { id: 1, name: "Oud Royale", price: 180, qty: 1, size: "50ml" }
+                    { id: 1, name: "Oud-e-Khas", price: 4500, qty: 1, size: "50ml" }
                 ],
-                subtotal: 180,
+                subtotal: 4500,
                 discount: 0,
-                total: 180,
+                total: 4500,
                 status: "processing",
                 shippingDetails: {
                     name: "Esha Razia",
@@ -71,7 +71,7 @@ function initLocalDatabase() {
         ];
         localStorage.setItem('luxe_orders', JSON.stringify(initialOrders));
 
-        localStorage.setItem('luxe_db_initialized', 'true');
+        localStorage.setItem('luxe_db_initialized_v3', 'true');
     }
 }
 

@@ -758,7 +758,7 @@ function renderShopPage(container) {
                                         <h5 class="dropdown-heading mb-3">Select Collections</h5>
                                         <div class="luxe-pill-filter-wrap">
                                             <button class="luxe-pill-btn ${state.shopFilters.collection.length === 0 ? 'active' : ''}" data-collection="all">All</button>
-                                            ${["French Collection", "Arabian Collection", "Floral Collection", "Men Collection", "Women Collection"].map(c => `
+                                            ${["French Collection", "Arabian Collection", "Floral Collection"].map(c => `
                                                 <button class="luxe-pill-btn ${state.shopFilters.collection.includes(c) ? 'active' : ''}" data-collection="${c}">${c.replace(" Collection", "")}</button>
                                             `).join('')}
                                         </div>
@@ -838,8 +838,8 @@ function renderShopGrid() {
         filtered = filtered.filter(p => state.shopFilters.gender.includes(p.gender));
     }
 
-    // 4. Price Limit
-    filtered = filtered.filter(p => p.price <= state.shopFilters.maxPrice);
+    // 4. Price Limit (Bypassed for PKR pricing)
+    // filtered = filtered.filter(p => p.price <= state.shopFilters.maxPrice);
 
     // 5. Sorting
     if (state.shopFilters.sort === "low-high") {
@@ -983,7 +983,7 @@ function renderProductDetailPage(container, productId) {
                             </div>
 
                             <div class="detail-price-wrap">
-                                <span class="detail-price" id="detail-price-display">$${basePrice}</span>
+                                <span class="detail-price" id="detail-price-display">Rs. ${basePrice}</span>
                                 ${product.discount > 0 ? `<span class="badge bg-danger">${product.discount}% OFF</span>` : ''}
                             </div>
 
@@ -1152,7 +1152,7 @@ function renderProductDetailPage(container, productId) {
         if (discount > 0) {
             finalPrice = Math.round(finalPrice * (1 - discount / 100));
         }
-        document.getElementById('detail-price-display').textContent = `$${finalPrice}`;
+        document.getElementById('detail-price-display').textContent = `Rs. ${finalPrice}`;
     };
 
     window.adjustDetailQty = function(val) {
@@ -1404,7 +1404,7 @@ function renderCartItemsList() {
                     </div>
                 </div>
             </td>
-            <td>$${item.price}</td>
+            <td>Rs. ${item.price}</td>
             <td>
                 <div class="quantity-control" style="max-width: 110px;">
                     <button class="qty-btn" onclick="updateCartQty(${index}, -1)"><i class="fas fa-minus"></i></button>
@@ -1412,7 +1412,7 @@ function renderCartItemsList() {
                     <button class="qty-btn" onclick="updateCartQty(${index}, 1)"><i class="fas fa-plus"></i></button>
                 </div>
             </td>
-            <td class="text-end font-heading" style="font-weight: 600;">$${item.price * item.quantity}</td>
+            <td class="text-end font-heading" style="font-weight: 600;">Rs. ${item.price * item.quantity}</td>
             <td>
                 <button class="cart-remove-btn" onclick="removeCartItem(${index})"><i class="fas fa-trash-alt"></i></button>
             </td>
@@ -1458,12 +1458,12 @@ function calculateCartTotals() {
     if (!subtotalEl || !totalEl) return;
 
     const subtotal = state.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    subtotalEl.textContent = `$${subtotal}`;
+    subtotalEl.textContent = `Rs. ${subtotal}`;
 
     let discount = 0;
     if (state.activeCoupon) {
         discount = Math.round(subtotal * (state.activeCoupon.discountPercent / 100));
-        discountEl.textContent = `-$${discount}`;
+        discountEl.textContent = `-Rs. ${discount}`;
         couponSpan.textContent = `${state.activeCoupon.code} (${state.activeCoupon.discountPercent}%)`;
         discountRow.style.display = 'flex';
     } else {
@@ -1471,7 +1471,7 @@ function calculateCartTotals() {
     }
 
     const total = subtotal - discount;
-    totalEl.textContent = `$${total}`;
+    totalEl.textContent = `Rs. ${total}`;
 }
 
 function setupCartEventListeners() {
@@ -1612,20 +1612,20 @@ function renderCheckoutPage(container) {
                                                 <small class="text-muted" style="font-size: 0.75rem;">${item.size} x ${item.quantity}</small>
                                             </div>
                                         </div>
-                                        <span class="font-heading" style="font-size: 0.9rem;">$${item.price * item.quantity}</span>
+                                        <span class="font-heading" style="font-size: 0.9rem;">Rs. ${item.price * item.quantity}</span>
                                     </div>
                                 `).join('')}
                             </div>
 
                             <div class="summary-row">
                                 <span>Subtotal</span>
-                                <span>$${subtotal}</span>
+                                <span>Rs. ${subtotal}</span>
                             </div>
                             
                             ${state.activeCoupon ? `
                                 <div class="summary-row">
                                     <span>Discount (${state.activeCoupon.code})</span>
-                                    <span class="text-danger">-$${discount}</span>
+                                    <span class="text-danger">-Rs. ${discount}</span>
                                 </div>
                             ` : ''}
 
@@ -1636,7 +1636,7 @@ function renderCheckoutPage(container) {
 
                             <div class="summary-row total">
                                 <span>Total Price</span>
-                                <span>$${total}</span>
+                                <span>Rs. ${total}</span>
                             </div>
                         </div>
                     </div>
@@ -1687,7 +1687,7 @@ function renderCheckoutPage(container) {
                 email: document.getElementById('chk-email').value,
                 items: orderedItems,
                 subtotal: subtotal,
-                discount: discountVal,
+                discount: discount,
                 total: orderTotal,
                 status: "processing",
                 shippingDetails: {
@@ -1738,7 +1738,7 @@ function renderCheckoutPage(container) {
                             </div>
                             <div class="order-confirm-row">
                                 <span><i class="fas fa-receipt me-2"></i>Total Paid</span>
-                                <strong>$${orderTotal}</strong>
+                                <strong>Rs. ${orderTotal}</strong>
                             </div>
                         </div>
 
@@ -1748,7 +1748,7 @@ function renderCheckoutPage(container) {
                                 <div class="order-item-row">
                                     <img src="${item.image}" alt="${item.name}">
                                     <span>${item.name} <small>(${item.size} x${item.quantity})</small></span>
-                                    <span>$${item.price * item.quantity}</span>
+                                    <span>Rs. ${item.price * item.quantity}</span>
                                 </div>
                             `).join('')}
                         </div>
@@ -2371,7 +2371,7 @@ function createProductCardHTML(p, gridClass = 'col-lg-3 col-md-6') {
     let oldPriceHTML = "";
     if (p.discount > 0) {
         finalPrice = Math.round(p.price * (1 - p.discount / 100));
-        oldPriceHTML = `<span class="product-card-price discounted">$${p.price}</span>`;
+        oldPriceHTML = `<span class="product-card-price discounted">Rs. ${p.price}</span>`;
     }
 
     return `
@@ -2399,7 +2399,7 @@ function createProductCardHTML(p, gridClass = 'col-lg-3 col-md-6') {
                 <div class="product-card-footer">
                     <div>
                         ${oldPriceHTML}
-                        <span class="product-card-price">$${finalPrice}</span>
+                        <span class="product-card-price">Rs. ${finalPrice}</span>
                     </div>
                     <button class="product-card-btn" onclick="addToCart(${p.id}, '50ml', 1)"><i class="fas fa-shopping-cart"></i></button>
                 </div>
@@ -2457,7 +2457,7 @@ async function renderAdminPage(container) {
                         <div class="col-md-3">
                             <div class="metric-card">
                                 <span class="metric-title">Total Sales</span>
-                                <span class="metric-value">$${Math.round(totalSales)}</span>
+                                <span class="metric-value">Rs. ${Math.round(totalSales)}</span>
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -2525,7 +2525,7 @@ async function renderAdminPage(container) {
                                         <td><strong>${o.id}</strong></td>
                                         <td>${o.email}</td>
                                         <td>${o.items.map(i => `${i.name} (x${i.quantity || i.qty})`).join(', ')}</td>
-                                        <td>$${o.total}</td>
+                                        <td>Rs. ${o.total}</td>
                                         <td><span class="badge ${statusClass} text-capitalize">${o.status}</span></td>
                                         <td>
                                             ${o.status === 'processing' ? `<button class="btn btn-sm btn-outline-primary me-2 mark-shipped-btn" data-order="${o.id}">Ship</button>` : ''}
@@ -2566,8 +2566,8 @@ async function renderAdminPage(container) {
                             </div>
                             <div class="row">
                                 <div class="col-md-4 form-group-luxe">
-                                    <label class="form-label-luxe">Price ($)</label>
-                                    <input type="number" id="prod-price" class="form-control form-control-luxe" required placeholder="e.g. 150">
+                                    <label class="form-label-luxe">Price (Rs.)</label>
+                                    <input type="number" id="prod-price" class="form-control form-control-luxe" required placeholder="e.g. 4500">
                                 </div>
                                 <div class="col-md-4 form-group-luxe">
                                     <label class="form-label-luxe">Discount (%)</label>
@@ -2579,8 +2579,6 @@ async function renderAdminPage(container) {
                                         <option value="French Collection">French Collection</option>
                                         <option value="Arabian Collection">Arabian Collection</option>
                                         <option value="Floral Collection">Floral Collection</option>
-                                        <option value="Men Collection">Men Collection</option>
-                                        <option value="Women Collection">Women Collection</option>
                                     </select>
                                 </div>
                             </div>
@@ -2638,7 +2636,7 @@ async function renderAdminPage(container) {
                                     <td><strong>${p.name}</strong><br><small class="text-muted">${p.brand}</small></td>
                                     <td>${p.collection}</td>
                                     <td class="text-capitalize">${p.gender}</td>
-                                    <td>$${p.price} ${p.discount > 0 ? `<small class="text-success">-${p.discount}%</small>` : ''}</td>
+                                    <td>Rs. ${p.price} ${p.discount > 0 ? `<small class="text-success">-${p.discount}%</small>` : ''}</td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-primary edit-product-btn me-2" data-id="${p.id}"><i class="fas fa-edit"></i></button>
                                         <button class="btn btn-sm btn-outline-danger delete-product-btn" data-id="${p.id}"><i class="fas fa-trash-alt"></i></button>
